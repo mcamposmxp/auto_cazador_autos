@@ -42,7 +42,7 @@ export default function ValuacionAuto() {
       title="Análisis de Precios Profesional"
       description="Para acceder al análisis de precios necesitas registrarte. Es gratis y recibes 5 consultas al registrarte."
     >
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="text-center mb-8">
@@ -63,8 +63,8 @@ export default function ValuacionAuto() {
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             <Card className="border-2 border-primary/20 hover:border-primary/40 transition-colors">
               <CardContent className="p-6 text-center">
-                <div className="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calculator className="h-6 w-6 text-green-600" />
+                <div className="bg-success/20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Calculator className="h-6 w-6 text-success" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Precio Preciso</h3>
                 <p className="text-muted-foreground">Análisis basado en datos reales del mercado mexicano</p>
@@ -73,8 +73,8 @@ export default function ValuacionAuto() {
 
             <Card className="border-2 border-primary/20 hover:border-primary/40 transition-colors">
               <CardContent className="p-6 text-center">
-                <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="h-6 w-6 text-blue-600" />
+                <div className="bg-primary/20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Tendencias Actuales</h3>
                 <p className="text-muted-foreground">Información actualizada de precios y demanda</p>
@@ -83,8 +83,8 @@ export default function ValuacionAuto() {
 
             <Card className="border-2 border-primary/20 hover:border-primary/40 transition-colors">
               <CardContent className="p-6 text-center">
-                <div className="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Car className="h-6 w-6 text-purple-600" />
+                <div className="bg-accent/20 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Car className="h-6 w-6 text-accent" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Comparativa</h3>
                 <p className="text-muted-foreground">Ve autos similares disponibles en el mercado</p>

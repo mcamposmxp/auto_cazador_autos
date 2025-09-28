@@ -653,6 +653,50 @@ export type Database = {
         }
         Relationships: []
       }
+      documentos_profesional: {
+        Row: {
+          comentarios: string | null
+          created_at: string | null
+          estado: string | null
+          id: string
+          nombre_archivo: string
+          profesional_id: string
+          tipo_documento: string
+          updated_at: string | null
+          url_documento: string
+        }
+        Insert: {
+          comentarios?: string | null
+          created_at?: string | null
+          estado?: string | null
+          id?: string
+          nombre_archivo: string
+          profesional_id: string
+          tipo_documento: string
+          updated_at?: string | null
+          url_documento: string
+        }
+        Update: {
+          comentarios?: string | null
+          created_at?: string | null
+          estado?: string | null
+          id?: string
+          nombre_archivo?: string
+          profesional_id?: string
+          tipo_documento?: string
+          updated_at?: string | null
+          url_documento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_profesional_profesional_id_fkey"
+            columns: ["profesional_id"]
+            isOneToOne: false
+            referencedRelation: "profesionales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estadisticas_extraccion: {
         Row: {
           created_at: string
@@ -874,6 +918,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "historial_cambios_precios_profesional_id_fkey"
+            columns: ["profesional_id"]
+            isOneToOne: false
+            referencedRelation: "profesionales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historial_verificaciones: {
+        Row: {
+          accion: string
+          comentarios: string | null
+          created_at: string | null
+          id: string
+          profesional_id: string
+          realizado_por: string | null
+        }
+        Insert: {
+          accion: string
+          comentarios?: string | null
+          created_at?: string | null
+          id?: string
+          profesional_id: string
+          realizado_por?: string | null
+        }
+        Update: {
+          accion?: string
+          comentarios?: string | null
+          created_at?: string | null
+          id?: string
+          profesional_id?: string
+          realizado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historial_verificaciones_profesional_id_fkey"
             columns: ["profesional_id"]
             isOneToOne: false
             referencedRelation: "profesionales"
@@ -1400,6 +1479,7 @@ export type Database = {
       profesionales: {
         Row: {
           activo: boolean
+          comentarios_verificacion: string | null
           contacto_principal: string | null
           correo: string | null
           created_at: string
@@ -1408,6 +1488,10 @@ export type Database = {
           direccion_cp: string | null
           direccion_estado: string | null
           direccion_numero: string | null
+          documentos_verificacion: Json | null
+          estado_verificacion: string | null
+          fecha_solicitud: string | null
+          fecha_verificacion: string | null
           id: string
           negocio_nombre: string
           notas: string | null
@@ -1419,9 +1503,11 @@ export type Database = {
           tipo_negocio: Database["public"]["Enums"]["tipo_negocio"]
           updated_at: string
           user_id: string | null
+          verificado_por: string | null
         }
         Insert: {
           activo?: boolean
+          comentarios_verificacion?: string | null
           contacto_principal?: string | null
           correo?: string | null
           created_at?: string
@@ -1430,6 +1516,10 @@ export type Database = {
           direccion_cp?: string | null
           direccion_estado?: string | null
           direccion_numero?: string | null
+          documentos_verificacion?: Json | null
+          estado_verificacion?: string | null
+          fecha_solicitud?: string | null
+          fecha_verificacion?: string | null
           id?: string
           negocio_nombre: string
           notas?: string | null
@@ -1441,9 +1531,11 @@ export type Database = {
           tipo_negocio: Database["public"]["Enums"]["tipo_negocio"]
           updated_at?: string
           user_id?: string | null
+          verificado_por?: string | null
         }
         Update: {
           activo?: boolean
+          comentarios_verificacion?: string | null
           contacto_principal?: string | null
           correo?: string | null
           created_at?: string
@@ -1452,6 +1544,10 @@ export type Database = {
           direccion_cp?: string | null
           direccion_estado?: string | null
           direccion_numero?: string | null
+          documentos_verificacion?: Json | null
+          estado_verificacion?: string | null
+          fecha_solicitud?: string | null
+          fecha_verificacion?: string | null
           id?: string
           negocio_nombre?: string
           notas?: string | null
@@ -1463,6 +1559,7 @@ export type Database = {
           tipo_negocio?: Database["public"]["Enums"]["tipo_negocio"]
           updated_at?: string
           user_id?: string | null
+          verificado_por?: string | null
         }
         Relationships: []
       }

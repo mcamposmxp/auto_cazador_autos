@@ -14,6 +14,7 @@ import { Edit2, Pause, Play, Trash2, CheckCircle, Copy, Eye, EyeOff, Calendar, F
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDate, formatRelativeTime } from "@/utils/formatters";
 import NotificacionesAdmin from "@/components/NotificacionesAdmin";
+import { VerificacionProfesionales } from "@/components/admin/VerificacionProfesionales";
 
 interface AutoVenta { 
   id: string; marca: string; modelo: string; ano: number; kilometraje: number; 
@@ -80,6 +81,7 @@ export default function Administracion() {
           <TabsTrigger value="subastas">Subastas</TabsTrigger>
           <TabsTrigger value="ayuda">Ayuda para vender</TabsTrigger>
           <TabsTrigger value="profesionales">Profesionales</TabsTrigger>
+          <TabsTrigger value="verificacion">Verificación</TabsTrigger>
           <TabsTrigger value="ofertas">Gestión de Ofertas</TabsTrigger>
           <TabsTrigger value="notificaciones">Notificaciones</TabsTrigger>
         </TabsList>
@@ -88,6 +90,7 @@ export default function Administracion() {
         <TabsContent value="subastas"><Subastas /></TabsContent>
         <TabsContent value="ayuda"><AyudaVenta /></TabsContent>
         <TabsContent value="profesionales"><ProfesionalesAdmin /></TabsContent>
+        <TabsContent value="verificacion"><VerificacionProfesionales /></TabsContent>
         <TabsContent value="ofertas"><GestionOfertas /></TabsContent>
         <TabsContent value="notificaciones"><NotificacionesAdmin /></TabsContent>
       </Tabs>

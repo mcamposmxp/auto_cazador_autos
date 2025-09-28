@@ -7,7 +7,7 @@ export default function OpcionesVenta() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -34,8 +34,8 @@ export default function OpcionesVenta() {
               </span>
             </div>
             <CardHeader className="text-center pb-4 pt-6">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-blue-600" />
+              <div className="bg-primary/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="h-8 w-8 text-primary" />
               </div>
               <CardTitle className="text-xl">Red de Profesionales</CardTitle>
               <p className="text-muted-foreground">Te conectamos con compradores profesionales verificados</p>
@@ -43,7 +43,7 @@ export default function OpcionesVenta() {
             <CardContent className="flex-1 flex flex-col">
               <div className="flex-1 space-y-4">
                 <div>
-                  <h4 className="font-semibold mb-2 text-green-600">Ventajas</h4>
+                  <h4 className="font-semibold mb-2 text-success">Ventajas</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
                     <li>• Sin costo para ti</li>
                     <li>• Ahorro de tiempo</li>
@@ -55,7 +55,7 @@ export default function OpcionesVenta() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-2 text-red-600">Desventaja</h4>
+                  <h4 className="font-semibold mb-2 text-destructive">Desventaja</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
                     <li>• Precio menor que venta directa</li>
                   </ul>
@@ -72,8 +72,8 @@ export default function OpcionesVenta() {
           {/* Subasta */}
           <Card className="border-2 border-primary/40 hover:border-primary/60 transition-colors relative h-full flex flex-col">
             <CardHeader className="text-center pb-4">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="h-8 w-8 text-green-600" />
+              <div className="bg-success/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="h-8 w-8 text-success" />
               </div>
               <CardTitle className="text-xl">Subasta de tu auto</CardTitle>
               <p className="text-muted-foreground">Subasta exclusiva para compradores profesionales</p>
@@ -81,7 +81,7 @@ export default function OpcionesVenta() {
             <CardContent className="flex-1 flex flex-col">
               <div className="flex-1 space-y-4">
                 <div>
-                  <h4 className="font-semibold mb-2 text-green-600">Ventajas</h4>
+                  <h4 className="font-semibold mb-2 text-success">Ventajas</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
                     <li>• Sin desgaste para ti</li>
                     <li>• Proceso transparente</li>
@@ -92,7 +92,7 @@ export default function OpcionesVenta() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-2 text-red-600">Desventajas</h4>
+                  <h4 className="font-semibold mb-2 text-destructive">Desventajas</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
                     <li>• Tiene un costo</li>
                     <li>• Requiere tiempo para revisión</li>
@@ -110,8 +110,8 @@ export default function OpcionesVenta() {
           {/* Venta por tu cuenta */}
           <Card className="border-2 border-primary/20 hover:border-primary/40 transition-colors h-full flex flex-col">
             <CardHeader className="text-center pb-4">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <DollarSign className="h-8 w-8 text-purple-600" />
+              <div className="bg-accent/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <DollarSign className="h-8 w-8 text-accent" />
               </div>
               <CardTitle className="text-xl">Venta por tu cuenta (Con nuestra ayuda)</CardTitle>
               <p className="text-muted-foreground">Vende tu auto sin riesgos y con opción de financiamiento</p>
@@ -119,7 +119,7 @@ export default function OpcionesVenta() {
             <CardContent className="flex-1 flex flex-col">
               <div className="flex-1 space-y-4">
                 <div>
-                  <h4 className="font-semibold mb-2 text-green-600">Ventajas</h4>
+                  <h4 className="font-semibold mb-2 text-success">Ventajas</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
               <li>• Mayor ganancia</li>
               <li>• Venta con financiamiento</li>
@@ -129,7 +129,7 @@ export default function OpcionesVenta() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-2 text-red-600">Desventajas</h4>
+                  <h4 className="font-semibold mb-2 text-destructive">Desventajas</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
               <li>• Requiere tiempo</li>
               <li>• Inversión inicial</li>

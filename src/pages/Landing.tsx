@@ -20,25 +20,25 @@ export default function Landing() {
       icon: Calculator,
       title: "Precio Inteligente",
       description: "IA que analiza miles de anuncios para darte información real del mercado y una venta segura",
-      color: "bg-blue-100 text-blue-600"
+      color: "bg-primary/20 text-primary"
     },
     {
       icon: Shield,
       title: "Servicio Trust",
       description: "Transacciones 100% seguras con verificación legal y mecánica",
-      color: "bg-purple-100 text-purple-600"
+      color: "bg-accent/20 text-accent"
     },
     {
       icon: TrendingUp,
       title: "Tendencias de Mercado",
       description: "Ve cómo han cambiado los precios y predice el mejor momento para vender",
-      color: "bg-green-100 text-green-600"
+      color: "bg-success/20 text-success"
     },
     {
       icon: Users,
       title: "Red de Profesionales",
       description: "Conecta con agencias y lotes verificados para venta rápida",
-      color: "bg-orange-100 text-orange-600"
+      color: "bg-warning/20 text-warning"
     }
   ];
 
@@ -65,7 +65,7 @@ export default function Landing() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-12 text-center">
         <Badge variant="secondary" className="mb-4">
@@ -91,7 +91,7 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section className="py-8 bg-white">
+      <section className="py-8 bg-card">
         <div className="container mx-auto px-4">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-foreground mb-3">
@@ -193,7 +193,7 @@ export default function Landing() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-6 bg-white">
+      <section className="py-6 bg-card">
         <div className="container mx-auto px-4">
           <div className="text-center mb-4">
             <h2 className="text-2xl font-bold text-foreground mb-2">
@@ -207,7 +207,7 @@ export default function Landing() {
                 <CardContent className="p-4">
                   <div className="flex mb-3">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                      <Star key={i} className="h-3 w-3 fill-warning text-warning" />
                     ))}
                   </div>
                   <p className="text-muted-foreground mb-3 text-sm italic">"{testimonial.content}"</p>

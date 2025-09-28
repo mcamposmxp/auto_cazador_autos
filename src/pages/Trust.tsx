@@ -375,13 +375,13 @@ export default function Trust() {
               ))}
             </div>
             
-            <Card className="bg-green-50 border-green-200">
+            <Card className="bg-success/10 border-success/20">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                  <h3 className="text-lg font-semibold text-green-900">Garantía de Satisfacción</h3>
+                  <CheckCircle className="h-6 w-6 text-success" />
+                  <h3 className="text-lg font-semibold text-success">Garantía de Satisfacción</h3>
                 </div>
-                <p className="text-green-800">
+                <p className="text-success">
                   Si no estás completamente satisfecho con nuestro servicio, te devolvemos el 100% de tu dinero. 
                   Sin preguntas, sin complicaciones.
                 </p>

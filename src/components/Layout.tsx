@@ -6,6 +6,7 @@ import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import UserIndicator from "@/components/UserIndicator";
 import { HelpFloatingButton } from "@/components/help/HelpFloatingButton";
 import { useCrispIntegration } from "@/hooks/useCrispIntegration";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -27,7 +28,8 @@ export function Layout({ children }: LayoutProps) {
               <div className="ml-4">
                 <h1 className="text-lg font-semibold text-foreground">AutoPriceLabs</h1>
               </div>
-              <div className="ml-auto">
+              <div className="ml-auto flex items-center gap-2">
+                <ThemeToggle />
                 <UserIndicator />
               </div>
             </header>

@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.crear-credenciales]
 verify_jwt = true
+
+[functions.notificar-cambio-verificacion]
+verify_jwt = false

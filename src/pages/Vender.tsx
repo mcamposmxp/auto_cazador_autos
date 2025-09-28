@@ -66,12 +66,12 @@ const AutoAdjustmentSection = ({
             <Settings className="h-5 w-5" />
             Autoajuste Programado de Precios
             {isConfigured ? (
-              <Badge variant="default" className="bg-green-100 text-green-800">
+              <Badge variant="default" className="bg-success/20 text-success">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Configurado
               </Badge>
             ) : (
-              <Badge variant="outline" className="text-orange-600 border-orange-300">
+              <Badge variant="outline" className="text-warning border-warning/50">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 Sin configurar
               </Badge>
@@ -113,8 +113,8 @@ const AutoAdjustmentSection = ({
             </Card>
           </div>
           
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800">
+          <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+            <p className="text-sm text-primary">
               <AlertCircle className="h-4 w-4 inline mr-2" />
               Solo se aplicarán ajustes a autos con precio mínimo configurado
             </p>
@@ -145,14 +145,14 @@ const misAnuncios = [
     precio_sugerido: 440000,
     demanda: {
       nivel: "Alta demanda",
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      color: "text-success",
+      bgColor: "bg-success/20",
     },
     competencia: {
       nivel: "Baja competencia",
       cantidad: 5,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      color: "text-success",
+      bgColor: "bg-success/20",
     },
     distribucion_precios: {
       muy_bajo: 8,
@@ -203,14 +203,14 @@ const misAnuncios = [
     precio_sugerido: 375000,
     demanda: {
       nivel: "Demanda moderada",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      color: "text-primary",
+      bgColor: "bg-primary/20",
     },
     competencia: {
       nivel: "Alta competencia",
       cantidad: 18,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
+      color: "text-warning",
+      bgColor: "bg-warning/20",
     },
     distribucion_precios: {
       muy_bajo: 10,
@@ -257,14 +257,14 @@ const misAnuncios = [
     fecha_venta: "2024-01-10",
     demanda: {
       nivel: "Muy alta demanda",
-      color: "text-red-600",
-      bgColor: "bg-red-50",
+      color: "text-destructive",
+      bgColor: "bg-destructive/20",
     },
     competencia: {
       nivel: "Muy baja competencia",
       cantidad: 3,
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-50",
+      color: "text-success",
+      bgColor: "bg-success/20",
     },
     distribucion_precios: {
       muy_bajo: 5,
@@ -487,14 +487,14 @@ export default function Vender() {
             ano: auto.ano,
             demanda: {
               nivel: "Alta demanda",
-              color: "text-green-600",
-              bgColor: "bg-green-50",
+              color: "text-success",
+              bgColor: "bg-success/20",
             },
             competencia: {
               nivel: "Baja competencia",
               cantidad: 5,
-              color: "text-green-600",
-              bgColor: "bg-green-50",
+              color: "text-success",
+              bgColor: "bg-success/20",
             },
             distribucion_precios: {
               muy_bajo: 8,
@@ -1192,10 +1192,10 @@ export default function Vender() {
       cantidad: nuevaCantidadCompetencia,
       nivel: nuevaCantidadCompetencia <= 5 ? "Baja competencia" : 
              nuevaCantidadCompetencia <= 10 ? "Competencia moderada" : "Alta competencia",
-      color: nuevaCantidadCompetencia <= 5 ? "text-green-600" : 
-             nuevaCantidadCompetencia <= 10 ? "text-blue-600" : "text-orange-600",
-      bgColor: nuevaCantidadCompetencia <= 5 ? "bg-green-50" : 
-               nuevaCantidadCompetencia <= 10 ? "bg-blue-50" : "bg-orange-50"
+      color: nuevaCantidadCompetencia <= 5 ? "text-success" : 
+             nuevaCantidadCompetencia <= 10 ? "text-primary" : "text-warning",
+      bgColor: nuevaCantidadCompetencia <= 5 ? "bg-success/20" : 
+               nuevaCantidadCompetencia <= 10 ? "bg-primary/20" : "bg-warning/20"
     };
     
     // Calcular nueva demanda
@@ -1207,9 +1207,9 @@ export default function Vender() {
       color: demandaFactor > 1.2 ? "text-red-600" :
              demandaFactor > 1.0 ? "text-green-600" :
              demandaFactor > 0.8 ? "text-blue-600" : "text-orange-600",
-      bgColor: demandaFactor > 1.2 ? "bg-red-50" :
-               demandaFactor > 1.0 ? "bg-green-50" :
-               demandaFactor > 0.8 ? "bg-blue-50" : "bg-orange-50"
+      bgColor: demandaFactor > 1.2 ? "bg-destructive/20" :
+               demandaFactor > 1.0 ? "bg-success/20" :
+               demandaFactor > 0.8 ? "bg-primary/20" : "bg-warning/20"
     };
     
     // Calcular nueva distribución de precios
@@ -1265,11 +1265,11 @@ export default function Vender() {
   const getEstadoBadge = (estado: string) => {
     switch (estado) {
       case 'activo':
-        return <Badge className="bg-green-100 text-green-700">Activo</Badge>;
+        return <Badge className="bg-success/20 text-success">Activo</Badge>;
       case 'pausado':
         return <Badge className="bg-yellow-100 text-yellow-700">Pausado</Badge>;
       case 'vendido':
-        return <Badge className="bg-blue-100 text-blue-700">Vendido</Badge>;
+        return <Badge className="bg-primary/20 text-primary">Vendido</Badge>;
       default:
         return <Badge variant="secondary">{estado}</Badge>;
     }
@@ -1282,9 +1282,9 @@ export default function Vender() {
       case 'mejorar_anuncio':
         return <AlertCircle className="h-4 w-4 text-yellow-500" />;
       case 'mantener':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-success" />;
       case 'optimizar':
-        return <TrendingUp className="h-4 w-4 text-blue-500" />;
+        return <TrendingUp className="h-4 w-4 text-primary" />;
       default:
         return <BarChart3 className="h-4 w-4 text-muted-foreground" />;
     }
@@ -1308,15 +1308,15 @@ export default function Vender() {
   const getPosicionColor = (posicion: string) => {
     switch (posicion) {
       case 'muy_bajo':
-        return 'text-green-600';
+        return 'text-success';
       case 'bajo':
-        return 'text-green-500';
+        return 'text-success';
       case 'promedio':
-        return 'text-blue-600';
+        return 'text-primary';
       case 'alto':
-        return 'text-orange-600';
+        return 'text-warning';
       case 'muy_alto':
-        return 'text-red-600';
+        return 'text-destructive';
       default:
         return 'text-muted-foreground';
     }
@@ -1384,22 +1384,22 @@ export default function Vender() {
   // Función para determinar la posición del precio actual basada en el precio real
   const determinarPosicionPrecio = (precio: number, distribucion: any) => {
     if (!distribucion.precio_minimo || !distribucion.precio_maximo) {
-      return { posicion: 'promedio', color: 'text-blue-600' };
+      return { posicion: 'promedio', color: 'text-primary' };
     }
     
     const rango = distribucion.precio_maximo - distribucion.precio_minimo;
     const posicionRelativa = (precio - distribucion.precio_minimo) / rango;
     
     if (posicionRelativa <= 0.2) {
-      return { posicion: 'muy_bajo', color: 'text-green-600' };
+      return { posicion: 'muy_bajo', color: 'text-success' };
     } else if (posicionRelativa <= 0.4) {
-      return { posicion: 'bajo', color: 'text-blue-600' };
+      return { posicion: 'bajo', color: 'text-primary' };
     } else if (posicionRelativa <= 0.6) {
       return { posicion: 'promedio', color: 'text-gray-600' };
     } else if (posicionRelativa <= 0.8) {
-      return { posicion: 'alto', color: 'text-orange-600' };
+      return { posicion: 'alto', color: 'text-warning' };
     } else {
-      return { posicion: 'muy_alto', color: 'text-red-600' };
+      return { posicion: 'muy_alto', color: 'text-destructive' };
     }
   };
 
@@ -1461,10 +1461,10 @@ export default function Vender() {
       </div>
 
       {/* Autoajuste Programado de Precios (Profesionales) */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 mb-6">
+      <Card className="bg-gradient-to-r from-muted/20 to-accent/20 border-primary/20 mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-blue-600" />
+            <Settings className="h-5 w-5 text-primary" />
             Autoajuste Programado de Precios
           </CardTitle>
         </CardHeader>
@@ -1474,8 +1474,8 @@ export default function Vender() {
               <div className="flex items-center gap-2">
                 <h4 className="font-medium">Configuración General</h4>
                 {configGeneralActiva && (
-                  <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-1" />
+                  <Badge variant="default" className="bg-success/20 text-success text-xs">
+                    <div className="w-2 h-2 bg-success rounded-full mr-1" />
                     Activa
                   </Badge>
                 )}
@@ -1492,7 +1492,7 @@ export default function Vender() {
                   Configurar Reglas Generales
                 </Button>
                 {configGeneralActiva && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" 
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-success rounded-full border-2 border-background" 
                        title="Configuración general activa" />
                 )}
               </div>
@@ -1663,7 +1663,7 @@ export default function Vender() {
                                 });
                                 setPreciosDialogOpen(true);
                               }}
-                              className="bg-green-50 hover:bg-green-100 border-green-200 text-green-700 justify-start"
+                              className="bg-success/20 hover:bg-success/30 border-success/50 text-success justify-start"
                             >
                               <DollarSign className="h-4 w-4 mr-2" />
                               Precios
@@ -1712,7 +1712,7 @@ export default function Vender() {
                               {/* Badge "Activa" posicionado en la esquina superior derecha */}
                               {configsEspecificasActivas.has(anuncio.id.toString()) && (
                                 <div className="absolute -top-1 -right-1">
-                                  <Badge variant="secondary" className="h-4 text-xs px-1 bg-green-500 text-white">
+                                  <Badge variant="secondary" className="h-4 text-xs px-1 bg-success text-success-foreground">
                                     Activa
                                   </Badge>
                                 </div>
@@ -1734,8 +1734,8 @@ export default function Vender() {
                                   variant={estaEnviadoVigente(anuncio.id) ? "default" : "outline"}
                                   className={
                                     estaEnviadoVigente(anuncio.id) 
-                                      ? "bg-green-600 hover:bg-green-700 text-white justify-start" 
-                                      : "bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700 justify-start"
+                                      ? "bg-success hover:bg-success/80 text-success-foreground justify-start" 
+                                      : "bg-warning/20 hover:bg-warning/30 border-warning/50 text-warning justify-start"
                                   }
                                   onClick={() => setAutoParaEnviar(anuncio.id)}
                                 >
@@ -1791,7 +1791,7 @@ export default function Vender() {
                                 <Button 
                                   size="sm"
                                   variant="outline"
-                                  className="bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700 justify-start"
+                                  className="bg-accent/20 hover:bg-accent/30 border-accent/50 text-accent justify-start"
                                 >
                                   <Gavel className="h-4 w-4 mr-2" />
                                   Enviar a Subasta
@@ -1852,30 +1852,30 @@ export default function Vender() {
                   <div className="lg:col-span-2 space-y-4">
                     {/* Estadísticas de rendimiento */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                      <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border">
-                        <Eye className="h-4 w-4 text-blue-500" />
+                      <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border">
+                        <Eye className="h-4 w-4 text-primary" />
                         <div>
                           <div className="text-sm font-semibold">{anuncio.vistas}</div>
                           <div className="text-xs text-muted-foreground">Vistas</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg border">
-                        <MessageCircle className="h-4 w-4 text-green-500" />
+                      <div className="flex items-center gap-2 p-3 bg-success/10 rounded-lg border">
+                        <MessageCircle className="h-4 w-4 text-success" />
                         <div>
                           <div className="text-sm font-semibold">{anuncio.contactos}</div>
                           <div className="text-xs text-muted-foreground">Contactos</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg border">
-                        <Users className="h-4 w-4 text-purple-500" />
+                      <div className="flex items-center gap-2 p-3 bg-accent/10 rounded-lg border">
+                        <Users className="h-4 w-4 text-accent" />
                         <div>
                           <div className="text-sm font-semibold">{anuncio.ofertas_profesionales}</div>
                           <div className="text-xs text-muted-foreground">Ofertas Pro</div>
                         </div>
                       </div>
                       {anuncio.estado !== 'vendido' && (
-                        <div className="flex items-center gap-2 p-3 bg-orange-50 rounded-lg border">
-                          <Clock className="h-4 w-4 text-orange-500" />
+                        <div className="flex items-center gap-2 p-3 bg-warning/10 rounded-lg border">
+                          <Clock className="h-4 w-4 text-warning" />
                           <div>
                             <div className="text-sm font-semibold">{anuncio.tiempo_estimado_venta}d</div>
                             <div className="text-xs text-muted-foreground">Estimado</div>
@@ -1936,7 +1936,7 @@ export default function Vender() {
                         {/* Barra de distribución */}
                         <div className="flex h-4 rounded-full overflow-hidden border">
                           <div 
-                            className="bg-green-500" 
+                            className="bg-success"
                             style={{ width: `${datosFiltrados.distribucion_precios.muy_bajo}%` }}
                           />
                           <div 
@@ -1944,22 +1944,22 @@ export default function Vender() {
                             style={{ width: `${datosFiltrados.distribucion_precios.bajo}%` }}
                           />
                           <div 
-                            className="bg-blue-500" 
+                            className="bg-primary"
                             style={{ width: `${datosFiltrados.distribucion_precios.promedio}%` }}
                           />
                           <div 
-                            className="bg-orange-500" 
+                            className="bg-warning"
                             style={{ width: `${datosFiltrados.distribucion_precios.alto}%` }}
                           />
                           <div 
-                            className="bg-red-500" 
+                            className="bg-destructive"
                             style={{ width: `${datosFiltrados.distribucion_precios.muy_alto}%` }}
                           />
                         </div>
                         
                         {/* Marcador de posición actual más prominente */}
                          <div 
-                           className="absolute -top-1 h-6 w-1 bg-gray-900 z-10 rounded-sm shadow-lg"
+                           className="absolute -top-1 h-6 w-1 bg-foreground z-10 rounded-sm shadow-lg"
                            style={{ left: `${calcularPosicionEnBarra(datosFiltrados.distribucion_precios, precioActualParaIndicador)}%`, transform: 'translateX(-50%)' }}
                          >
                            <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-gray-900 rotate-45"></div>
@@ -2014,7 +2014,7 @@ export default function Vender() {
                         {/* Barra de distribución */}
                         <div className="flex h-4 rounded-full overflow-hidden border">
                           <div 
-                            className="bg-green-500" 
+                            className="bg-success" 
                             style={{ width: `${datosFiltrados.distribucion_kilometraje.muy_bajo}%` }}
                           />
                           <div 
@@ -2022,22 +2022,22 @@ export default function Vender() {
                             style={{ width: `${datosFiltrados.distribucion_kilometraje.bajo}%` }}
                           />
                           <div 
-                            className="bg-blue-500" 
+                            className="bg-primary" 
                             style={{ width: `${datosFiltrados.distribucion_kilometraje.promedio}%` }}
                           />
                           <div 
-                            className="bg-orange-500" 
+                            className="bg-warning" 
                             style={{ width: `${datosFiltrados.distribucion_kilometraje.alto}%` }}
                           />
                           <div 
-                            className="bg-red-500" 
+                            className="bg-destructive" 
                             style={{ width: `${datosFiltrados.distribucion_kilometraje.muy_alto}%` }}
                           />
                         </div>
                         
                         {/* Marcador de posición actual más prominente */}
                         <div 
-                          className="absolute -top-1 h-6 w-1 bg-gray-900 z-10 rounded-sm shadow-lg"
+                          className="absolute -top-1 h-6 w-1 bg-foreground z-10 rounded-sm shadow-lg"
                           style={{ left: `${calcularPosicionEnBarra(datosFiltrados.distribucion_kilometraje)}%`, transform: 'translateX(-50%)' }}
                         >
                           <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-gray-900 rotate-45"></div>
@@ -2067,7 +2067,7 @@ export default function Vender() {
                         <span>Muy Alto</span>
                       </div>
                       
-                      <div className="mt-2 p-2 bg-blue-50 rounded text-xs text-blue-800">
+                      <div className="mt-2 p-2 bg-primary/10 rounded text-xs text-primary">
                         🚗 Zona Óptima: {anuncio.distribucion_kilometraje.zona_optima} • {anuncio.distribucion_kilometraje.dispersion}
                       </div>
                     </div>
@@ -2140,7 +2140,7 @@ export default function Vender() {
                       </Button>
                       
                       {anuncio.estado !== 'vendido' && (
-                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                        <Button size="sm" variant="outline" className="text-destructive hover:text-destructive/80">
                           <Trash2 className="h-4 w-4 mr-1" />
                           Eliminar
                         </Button>
@@ -2367,16 +2367,16 @@ export default function Vender() {
 
                     {/* Detalles de la oferta */}
                     <div className="grid md:grid-cols-3 gap-4">
-                      <div className="text-center p-3 bg-green-50 rounded-lg">
-                        <div className="text-lg font-bold text-green-700">
+                      <div className="text-center p-3 bg-success/20 rounded-lg">
+                        <div className="text-lg font-bold text-success">
                           {oferta.monto_oferta ? `$${oferta.monto_oferta.toLocaleString()}` : 'Por definir'}
                         </div>
                         <div className="text-sm text-green-600">Oferta</div>
                       </div>
                       
                       {oferta.monto_min && (
-                        <div className="text-center p-3 bg-blue-50 rounded-lg">
-                          <div className="text-lg font-bold text-blue-700">
+                        <div className="text-center p-3 bg-primary/20 rounded-lg">
+                          <div className="text-lg font-bold text-primary">
                             ${oferta.monto_min.toLocaleString()}
                           </div>
                           <div className="text-sm text-blue-600">Mínimo</div>
@@ -2384,8 +2384,8 @@ export default function Vender() {
                       )}
                       
                       {oferta.monto_max && (
-                        <div className="text-center p-3 bg-purple-50 rounded-lg">
-                          <div className="text-lg font-bold text-purple-700">
+                        <div className="text-center p-3 bg-accent/20 rounded-lg">
+                          <div className="text-lg font-bold text-accent">
                             ${oferta.monto_max.toLocaleString()}
                           </div>
                           <div className="text-sm text-purple-600">Máximo</div>
@@ -2416,7 +2416,7 @@ export default function Vender() {
                         variant="outline" 
                         size="sm"
                         onClick={() => eliminarDeOportunidades(oferta.auto_venta_id)}
-                        className="bg-red-50 text-red-700 border-red-300 hover:bg-red-100 hover:border-red-400 font-medium"
+                        className="bg-destructive/20 text-destructive border-destructive/50 hover:bg-destructive/30 hover:border-destructive/60 font-medium"
                       >
                         <Trash2 className="h-4 w-4 mr-1" />
                         Quitar de Oportunidades
@@ -2597,8 +2597,8 @@ export default function Vender() {
               const posicion = determinarPosicionPrecio(nuevoPrecio, datosFiltrados.distribucion_precios);
               
               return (
-                <div className="bg-blue-50 dark:bg-blue-950/50 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <h4 className="font-medium mb-2 text-sm text-blue-900 dark:text-blue-100">
+                <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                  <h4 className="font-medium mb-2 text-sm text-primary">
                     Vista Previa de Posicionamiento
                   </h4>
                   <div className="flex items-center gap-3">
@@ -2606,7 +2606,7 @@ export default function Vender() {
                          style={{borderColor: posicion.color.replace('text-', '')}}>
                       {getPosicionTexto(posicion.posicion)}
                     </div>
-                    <span className="text-sm text-blue-700 dark:text-blue-300">
+                    <span className="text-sm text-primary">
                       con el precio de {formatearPrecio(nuevoPrecio)}
                     </span>
                   </div>

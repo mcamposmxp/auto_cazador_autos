@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { lazy, Suspense } from "react";
 import { LoadingSpinner } from "./components/shared/LoadingSpinner";
+import { ThemeProvider } from "./providers/ThemeProvider";
 
 // Lazy loading para páginas grandes
 const Landing = lazy(() => import("./pages/Landing"));
@@ -32,14 +33,16 @@ const Notificaciones = lazy(() => import("./pages/Notificaciones"));
 const Planes = lazy(() => import("./pages/Planes"));
 const CreditosGratis = lazy(() => import("./pages/CreditosGratis"));
 const MisDatos = lazy(() => import("./pages/MisDatos"));
+const NotificacionesConfig = lazy(() => import("./pages/NotificacionesConfig"));
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
-      <TooltipProvider delayDuration={300}>
-        <Layout>
+      <ThemeProvider>
+        <TooltipProvider delayDuration={300}>
+          <Layout>
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/" element={<Landing />} />
@@ -64,15 +67,17 @@ const App = () => (
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/notificaciones" element={<Notificaciones />} />
               <Route path="/planes" element={<Planes />} />
+              <Route path="/configuracion" element={<NotificacionesConfig />} />
               <Route path="/creditos-gratis" element={<CreditosGratis />} />
               <Route path="/mis-datos" element={<MisDatos />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
-        </Layout>
-        <Toaster />
-      </TooltipProvider>
+          </Layout>
+          <Toaster />
+        </TooltipProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </QueryClientProvider>
 );

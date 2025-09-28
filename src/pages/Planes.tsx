@@ -37,8 +37,8 @@ const particularsPlans: Plan[] = [
       'Soporte por email'
     ],
     icon: CreditCard,
-    color: 'text-slate-600',
-    bgColor: 'bg-slate-50',
+    color: 'text-muted-foreground',
+    bgColor: 'bg-muted/20',
     ctaText: 'Comprar Ahora'
   },
   {
@@ -57,8 +57,8 @@ const particularsPlans: Plan[] = [
       'Soporte prioritario'
     ],
     icon: Zap,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
     isPopular: true,
     ctaText: 'Más Popular'
   },
@@ -79,8 +79,8 @@ const particularsPlans: Plan[] = [
       'Soporte 24/7'
     ],
     icon: Crown,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50',
+    color: 'text-warning',
+    bgColor: 'bg-warning/10',
     ctaText: 'Máximo Ahorro'
   }
 ];
@@ -102,8 +102,8 @@ const professionalPlans: Plan[] = [
       'Soporte básico'
     ],
     icon: CreditCard,
-    color: 'text-slate-600',
-    bgColor: 'bg-slate-50',
+    color: 'text-muted-foreground',
+    bgColor: 'bg-muted/20',
     ctaText: 'Empezar Ahora'
   },
   {
@@ -126,8 +126,8 @@ const professionalPlans: Plan[] = [
       'Soporte estándar'
     ],
     icon: Zap,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
     isPopular: true,
     ctaText: 'Más Popular'
   },
@@ -152,8 +152,8 @@ const professionalPlans: Plan[] = [
       'Soporte estándar'
     ],
     icon: Users,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
+    color: 'text-accent',
+    bgColor: 'bg-accent/10',
     ctaText: 'Comenzar Business'
   },
   {
@@ -179,8 +179,8 @@ const professionalPlans: Plan[] = [
       'Soporte 24/7 dedicado'
     ],
     icon: Crown,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50',
+    color: 'text-warning',
+    bgColor: 'bg-warning/10',
     ctaText: 'Contactar Ventas'
   }
 ];
@@ -294,7 +294,7 @@ export default function Planes() {
           <ul className="space-y-2 flex-1">
             {plan.features.map((feature, index) => (
               <li key={index} className="flex items-start gap-2 text-sm">
-                <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <Check className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
                 <span>{feature}</span>
               </li>
             ))}
@@ -332,15 +332,15 @@ export default function Planes() {
         </p>
         <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
-            <Check className="h-4 w-4 text-green-600" />
+            <Check className="h-4 w-4 text-success" />
             <span>Sin comisiones ocultas</span>
           </div>
           <div className="flex items-center gap-1">
-            <Check className="h-4 w-4 text-green-600" />
+            <Check className="h-4 w-4 text-success" />
             <span>Activación instantánea</span>
           </div>
           <div className="flex items-center gap-1">
-            <Check className="h-4 w-4 text-green-600" />
+            <Check className="h-4 w-4 text-success" />
             <span>Soporte especializado</span>
           </div>
         </div>
@@ -350,7 +350,7 @@ export default function Planes() {
       <section className="space-y-6">
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-bold text-foreground flex items-center justify-center gap-3">
-            <CreditCard className="h-8 w-8 text-slate-600" />
+            <CreditCard className="h-8 w-8 text-muted-foreground" />
             Particulares
           </h2>
           <p className="text-lg text-muted-foreground">
@@ -367,60 +367,60 @@ export default function Planes() {
       <section className="space-y-6">
         <div className="text-center space-y-4 max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-foreground flex items-center justify-center gap-3">
-            <Users className="h-8 w-8 text-blue-600" />
+            <Users className="h-8 w-8 text-primary" />
             Profesionales
           </h2>
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 space-y-3">
-            <h3 className="text-2xl font-bold text-blue-900">
+          <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl p-6 space-y-3">
+            <h3 className="text-2xl font-bold text-primary">
               Maximiza tu negocio automotriz con tecnología inteligente
             </h3>
-            <p className="text-blue-700 text-lg leading-relaxed">
+            <p className="text-primary text-lg leading-relaxed">
               Nuestra plataforma te ofrece herramientas profesionales que transforman la manera de gestionar tu inventario, 
               optimizar precios y conectar con oportunidades de negocio. Con análisis de IA avanzada, autoajuste de precios 
               y acceso a una red exclusiva de profesionales del sector.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-            <div className="bg-white rounded-lg p-4 shadow-sm border">
-              <div className="font-semibold text-green-700 mb-1">⏱️ Ahorra Tiempo</div>
+            <div className="bg-card rounded-lg p-4 shadow-sm border">
+              <div className="font-semibold text-success mb-1">⏱️ Ahorra Tiempo</div>
               <div className="text-muted-foreground">Automatización inteligente de tareas repetitivas</div>
             </div>
-            <div className="bg-white rounded-lg p-4 shadow-sm border">
-              <div className="font-semibold text-blue-700 mb-1">💰 Aumenta Ganancias</div>
+            <div className="bg-card rounded-lg p-4 shadow-sm border">
+              <div className="font-semibold text-primary mb-1">💰 Aumenta Ganancias</div>
               <div className="text-muted-foreground">Precios optimizados con análisis de mercado</div>
             </div>
-            <div className="bg-white rounded-lg p-4 shadow-sm border">
-              <div className="font-semibold text-purple-700 mb-1">🌐 Amplía tu Alcance</div>
+            <div className="bg-card rounded-lg p-4 shadow-sm border">
+              <div className="font-semibold text-accent mb-1">🌐 Amplía tu Alcance</div>
               <div className="text-muted-foreground">Red exclusiva de oportunidades profesionales</div>
             </div>
-            <div className="bg-white rounded-lg p-4 shadow-sm border">
-              <div className="font-semibold text-orange-700 mb-1">📊 Mejores Decisiones</div>
+            <div className="bg-card rounded-lg p-4 shadow-sm border">
+              <div className="font-semibold text-warning mb-1">📊 Mejores Decisiones</div>
               <div className="text-muted-foreground">Análisis predictivo e insights de IA</div>
             </div>
           </div>
-          <div className="bg-blue-50 rounded-lg p-4 space-y-2">
-            <h4 className="font-semibold text-blue-900">💡 Tipos de Consumo de Créditos:</h4>
+          <div className="bg-primary/10 rounded-lg p-4 space-y-2">
+            <h4 className="font-semibold text-primary">💡 Tipos de Consumo de Créditos:</h4>
             <div className="grid md:grid-cols-2 gap-3 text-sm">
               <div className="flex items-start gap-2">
-                <span className="text-blue-600">🔍</span>
+                <span className="text-primary">🔍</span>
                 <div>
                   <strong>Consulta manual:</strong> 1 crédito por búsqueda directa de precios
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-blue-600">📋</span>
+                <span className="text-primary">📋</span>
                 <div>
                   <strong>Vista "Mis Anuncios":</strong> 1 crédito por semana por auto publicado
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-blue-600">⚙️</span>
+                <span className="text-primary">⚙️</span>
                 <div>
                   <strong>Autoajuste automático:</strong> Configuración de reglas de precio inteligentes
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-blue-600">📊</span>
+                <span className="text-primary">📊</span>
                 <div>
                   <strong>Historial de cambios:</strong> Seguimiento completo de ajustes automáticos
                 </div>

@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatPrice, formatNumber } from '@/utils/formatters';
 import { SkeletonCard } from '@/components/shared/SkeletonCard';
 import { ConfiguradorFiltrosOfertas } from '@/components/ConfiguradorFiltrosOfertas';
+import { EstadoVerificacion } from '@/components/EstadoVerificacion';
 
 interface ProfessionalStats {
   totalInventory: number;
@@ -192,6 +193,9 @@ export function ProfessionalTools() {
           Gestiona tu negocio y analiza el rendimiento de tu inventario
         </p>
       </div>
+
+      {/* Estado de Verificación */}
+      <EstadoVerificacion />
 
       {/* KPIs del negocio */}
       {stats && (
