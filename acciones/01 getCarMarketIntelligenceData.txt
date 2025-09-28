@@ -1,0 +1,10 @@
+función asincrona sea de nombre 'getCarMarketIntelligenceData' y que obtenga todos los datos de la API ya que estos datos los usaremos en diferentes lugares la API se obtiene de   curl --location 'https://api.maxipublica.com/v3/232AE09500000534D23EE1295785AA9834/example/v_1_57_47_5_4' \
+--header 'Authorization:{autorizationCatalogoMP}'
+
+donde el valor de 
+identificador de la version, por ejemplo 'v_1_57_47_5_4' se obtiene del formulario donde se seleccionó marca, modelo, año y versión, por ejemplo para el auto 'Volkswagen', 'Vento', '2017' y '4p Comfortline L4/1.6 Man' se obtiene el valor 'v_1_57_47_5_4'
+y el valor de Authorization se obtiene de la authorization de Supabase secrets autorizationCatalogoMP
+
+
+---
+Se debe cambiar el Authorization:{autorizationCatalogoMP} por Authorization:{autorizationIdmMP}

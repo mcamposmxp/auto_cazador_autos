@@ -1,0 +1,140 @@
+{
+    "calculatedBy": "country",
+    "recognition": {
+        "brand": "Audi",
+        "model": "A3",
+        "year": "2023",
+        "trim": "4p 35 Dynamic L4/1.4/T Aut",
+        "fuel": "",
+        "transmission": "",
+        "bodyType": "",
+        "condition": "",
+        "km": "",
+        "currency": ""
+    },
+    "ads": {
+        "priceSale": null,
+        "pricePurchase": null
+    },
+    "deval": {
+        "250": -0.009375,
+        "500": -0.01875,
+        "750": -0.028125,
+        "1000": -0.0375,
+        "1250": -0.046875,
+        "1500": -0.05625,
+        "1750": -0.065625,
+        "2000": -0.075,
+        "fixe": -0.00375
+    },
+    "averageSalesTime": {
+        "averageTime": 32
+    },
+    "suggestedPrice": {
+        "suggestedPrice": 440000,
+        "suggestedPricePublish": 440000,
+        "suggestedPriceSale": 404800,
+        "averagePriceSale": 388600,
+        "averagePricePurchase": 352200,
+        "diffPercentage": 19.95,
+        "diffPercentNationalPrice": null,
+        "diffPercentLocalPrice": null,
+        "purchasePrice": 352200,
+        "priceDown": 341600,
+        "priceUp": 362800,
+        "rangePrice": true,
+        "priceRangeFormated": "$341,600 - $362,800"
+    },
+    "histPrice": {
+        "values": {
+            "459000": 4,
+            "476500": 12,
+            "494000": 13,
+            "511500": 4,
+            "529000": 0,
+            "546500": 0,
+            "564000": 1,
+            "581500": 1
+        },
+        "axis": {
+            "x": "Precio",
+            "y": "Cantidad"
+        },
+        "min": null,
+        "median": 520250,
+        "max": null,
+        "val": ""
+    },
+    "histKm": {
+        "values": {
+            "8390": 1,
+            "13731": 1,
+            "19072": 5,
+            "24413": 8,
+            "29754": 8,
+            "35095": 9,
+            "40436": 1,
+            "45777": 3
+        },
+        "axis": {
+            "x": "Kilometros",
+            "y": "Cantidad"
+        },
+        "min": null,
+        "median": 27083.5,
+        "max": null,
+        "val": ""
+    },
+    "posibilities": {},
+    "depreciationFactorByDay": 0.12,
+    "interest": null,
+    "certainty": 4,
+    "avgMillage": 30000,
+    "avgPrice": 440000,
+    "auction": {},
+    "futureProjection": {
+        "30days": 439000,
+        "60days": 438000,
+        "90days": 437000
+    },
+    "normalDistribution": {
+        "Q0": 459000,
+        "lowerBound": 442700,
+        "Q1": 469400,
+        "Q2": 496100,
+        "Q3": 522800,
+        "upperBound": 549400,
+        "Q4": 599000,
+        "quantities": {
+            "Q0": 0,
+            "lowerBound": 3,
+            "Q1": 19,
+            "Q2": 11,
+            "Q3": 0,
+            "upperBound": 2,
+            "Q4": 0
+        },
+        "labels": {
+            "Q1": "El 25% con precio menor a $469,400",
+            "Q2": "El 50% con precio menor a $496,100",
+            "Q3": "El 75% con precio menor a $522,800"
+        }
+    },
+    "trend": {
+        "trendEquation": "y= -0.626x + 515603.387",
+        "R2": 0.03707317144863705
+    },
+    "suggestedPrices": {
+        "suggestedPrice": {
+            "price": 440000,
+            "label": "Precio promedio de publicación para un recorrido promedio de 30,000 Km"
+        }
+    },
+    "interestRanking": {
+        "ranking": 4,
+        "totalAds": 0,
+        "certainty": 4,
+        "publishedAds": 0,
+        "calculationProcess": "El precio es un precio sugerido de publicación, debido a que existe una muestra muy pequeña de publicaciones para este modelo."
+    }
+}

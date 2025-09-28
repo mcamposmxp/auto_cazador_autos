@@ -1,0 +1,68 @@
+# Análisis de la sección "COMPETENCIA DEL MERCADO"
+La información que se muestra en esta sección es completamente variable y se calcula dinámicamente. Te explico cada uno de los 4 elementos que mencionas:
+
+1. "Competencia moderada"
+Fuente: Función calcularCompetenciaMercado() líneas 362-449 Variables utilizadas:
+
+autosSimilares.length (cantidad total de anuncios similares encontrados)
+estadoSeleccionado (filtro de ubicación geográfica)
+tipoVendedorSeleccionado (particulares/profesionales/todos)
+Lógica de cálculo:
+
+Se calcula un factorCompetencia basado en la cantidad de anuncios similares
+Se aplican multiplicadores según los filtros:
+Si estadoSeleccionado === "todos": factor × 1.3
+Si tipoVendedorSeleccionado === "todos": factor × 1.2
+Según el valor final del factor, se asigna el nivel:
+≤ 4: "Muy baja competencia"
+≤ 8: "Baja competencia"
+≤ 15: "Competencia moderada"
+≤ 25: "Alta competencia"
+25: "Competencia extrema"
+
+2. "Mercado equilibrado"
+Fuente: Misma función, propiedad descripcion Variables: Asociada directamente al nivel de competencia calculado arriba.
+
+3. "6 autos"
+Fuente: Propiedad cantidad que es igual a autosSimilares.length Variables utilizadas:
+
+autosSimilares (array de vehículos similares obtenidos de la base de datos)
+Filtros activos (estadoSeleccionado, tipoVendedorSeleccionado)
+4. "Normal"
+Fuente: Propiedad intensidad calculada en líneas 377-391 Variables utilizadas:
+
+Precios de todos los autos similares
+Cálculo del coeficiente de variación de precios
+Lógica de cálculo:
+
+Se obtienen los precios de todos los autos similares
+Se calcula el promedio y la varianza de precios
+Se determina el coeficiente de variación
+Según el coeficiente:
+0.4: "agresiva" (precios muy dispersos)
+
+< 0.15: "estable" (precios similares)
+Entre 0.15-0.4: "normal"
+
+Fuentes de datos:
+Base de datos Supabase: tabla anuncios_vehiculos (para autos similares)
+Filtros del usuario: estado geográfico y tipo de vendedor
+Cálculos en tiempo real: estadísticas de precios y dispersión
+Conclusión: Toda la información de la sección "COMPETENCIA DEL MERCADO" es variable y dinámica, se recalcula cada vez que cambian los filtros o se cargan nuevos datos de vehículos similares. No hay valores fijos codificados.
+
+---
+# Cambios:
+
+## Cantidad de autos
+vamos a cambiar el origen de los datos, en lugar de obtener el cálculo de la tabla 'anuncios_vehiculos' donde después lo obtienes  en 'autosSimilares.length' el valor lo obtendrás del resultado de la variable 'interestRanking.totalAds' de la API que recuperas con la funcion 'getCarMarketIntelligenceData', de esta manera "6 autos" se cambiará por el valor que regrese la API
+
+## Nivel de competencia
+Se cambiara el nivel de competencia dependiendo del el valor que lo obtendrás del resultado de la variable 'interestRanking.certainty' de la API que recuperas con la funcion 'getCarMarketIntelligenceData'
+
+Para los valores de certainty
+certainty: Valor a mostrar
+≤ 1: "Muy baja competencia"
+≤ 2: "Baja competencia"
+≤ 3: "Competencia moderada"
+≤ 4: "Alta competencia"
+≤ 5: "Competencia extrema"

@@ -1,0 +1,25 @@
+despues de llenar el formulario que se encuentra en la url 
+https://preview--auto-cazador-mexico.lovable.app/valuacion con los datos en el formulario donde se seleccionó marca, modelo, año y versión, por ejemplo para el auto 'Volkswagen', 'Vento', '2017' y '4p Comfortline L4/1.6 Man' 
+
+Se presiona el botón del formulario de nombre 'Obtener análisis de precios' y se llega al sitio que entre otros datos contiene la sección de 'Filtros de Análisis' y uno de los elementos dentro de esta sección es 'PRECIO PROMEDIO DE MERCADO'
+
+Necesito que a partir de la selección del formulario anterior  con los datos de marca, modelo, año y versión de los cuales se obtiene el identificador de versión por ejemplo para el auto 'Volkswagen', 'Vento', '2017' y '4p Comfortline L4/1.6 Man' de donde se obtiene el valor del id 'v_1_57_47_5_4' 
+Con ese valor se consulta a la funcion de 'getCarMarketIntelligenceData' y de ahi se obtiene el siguiente dato:
+
+curl --location 'https://api.maxipublica.com/v3/232AE09500000534D23EE1295785AA9834/example/v_1_57_47_5_4' \
+--header 'Authorization: {secrets:market_intelligence_authorization}'
+
+Se obtendrá desde la función 'getCarMarketIntelligenceData' toda la información que se obtenga de la API.
+
+Por ejemplo el siguiente dato:
+
+"suggestedPrice": {
+    "suggestedPricePublish": 152100
+}
+
+Que se usará para poblar el valor de 'PRECIO PROMEDIO DE MERCADO' donde actualmente se esta poblando con un valor de $288,750, se debe sustituir con el valor de la API que en este caso es de 152100 y una vez formateado queda como $152,100
+
+---
+cuando carga la primera vez la página aparece el precio constante de "$288,750" el cual unos segundos después es sustituido por el valor del auto específico que es "$152,100". 
+
+---
