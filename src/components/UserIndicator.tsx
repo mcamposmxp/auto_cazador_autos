@@ -16,6 +16,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import AuthModal from "@/components/AuthModal";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { DebugToggle } from "./DebugToggle";
 
 export default function UserIndicator() {
   const [openAuth, setOpenAuth] = useState(false);
@@ -67,6 +68,10 @@ export default function UserIndicator() {
           {isAdmin && (
             <DropdownMenuItem onClick={() => navigate("/administracion")}>Administración</DropdownMenuItem>
           )}
+          <DropdownMenuSeparator />
+          <div className="px-2 py-1">
+            <DebugToggle />
+          </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSwitchUser}>Cambiar de usuario</DropdownMenuItem>
           <DropdownMenuItem onClick={handleLogout}>Cerrar sesión</DropdownMenuItem>

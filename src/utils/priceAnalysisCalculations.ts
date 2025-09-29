@@ -153,107 +153,77 @@ export const calcularDemandaAuto = (autosSimilares: AutoSimilar[], datos: DatosV
   const antiguedad = anoActual - datos.ano;
   const totalAnuncios = autosSimilares.length;
   
-  let puntajeDemanda = 0;
-  
-  // Factor 1: Antigüedad del vehículo (35% del peso)
-  if (antiguedad <= 2) {
-    puntajeDemanda += 35; // Vehículos muy nuevos
-  } else if (antiguedad <= 5) {
-    puntajeDemanda += 28; // Vehículos nuevos
-  } else if (antiguedad <= 8) {
-    puntajeDemanda += 20; // Vehículos de edad media
-  } else if (antiguedad <= 12) {
-    puntajeDemanda += 12; // Vehículos usados
+  // Clasificación principal basada en las reglas del debug
+  let nivelDemanda: string;
+  let descripcion: string;
+  let icono: string;
+  let color: string;
+  let bgColor: string;
+  let borderColor: string;
+
+  if (totalAnuncios > 15) {
+    nivelDemanda = "Alta demanda";
+    descripcion = "Buena demanda del mercado";
+    icono = "TrendingUp";
+    color = "text-green-600";
+    bgColor = "bg-green-50";
+    borderColor = "border-green-200";
+  } else if (totalAnuncios >= 5) {
+    nivelDemanda = "Demanda moderada";
+    descripcion = "Demanda equilibrada";
+    icono = "BarChart3";
+    color = "text-blue-600";
+    bgColor = "bg-blue-50";
+    borderColor = "border-blue-200";
   } else {
-    puntajeDemanda += 5; // Vehículos antiguos
+    nivelDemanda = "Baja demanda";
+    descripcion = "Demanda limitada";
+    icono = "AlertTriangle";
+    color = "text-orange-600";
+    bgColor = "bg-orange-50";
+    borderColor = "border-orange-200";
   }
-  
-  // Factor 2: Análisis de competencia/oferta (30% del peso)
-  if (totalAnuncios <= 3) {
-    puntajeDemanda += 30; // Muy poca oferta = alta demanda
-  } else if (totalAnuncios <= 8) {
-    puntajeDemanda += 22; // Poca oferta = demanda buena
-  } else if (totalAnuncios <= 15) {
-    puntajeDemanda += 15; // Oferta moderada
-  } else if (totalAnuncios <= 25) {
-    puntajeDemanda += 8; // Mucha oferta
-  } else {
-    puntajeDemanda += 3; // Oferta excesiva = baja demanda
-  }
-  
-  // Factor 3: Análisis de precios del mercado (20% del peso)
-  if (estadisticas.precioRecomendado > 0) {
-    const dispersionPrecios = autosSimilares.length > 1 ? 
-      Math.abs(estadisticas.precioMaximo - estadisticas.precioMinimo) / estadisticas.precioPromedio : 0;
-    
-    if (dispersionPrecios < 0.3) {
-      puntajeDemanda += 20; // Precios estables = demanda consistente
-    } else if (dispersionPrecios < 0.6) {
-      puntajeDemanda += 12; // Variación moderada
-    } else {
-      puntajeDemanda += 5; // Alta variación = mercado inestable
-    }
-  }
-  
-  // Factor 4: Análisis por marca (15% del peso)
+
+  // Aplicar ajustes por factores adicionales (antigüedad, marca)
   const marcasAlta = ['Toyota', 'Honda', 'Mazda', 'Subaru'];
   const marcasMedia = ['Nissan', 'Chevrolet', 'Ford', 'Volkswagen', 'Hyundai', 'Kia'];
   
+  let ajustePorMarca = 0;
   if (marcasAlta.includes(datos.marca)) {
-    puntajeDemanda += 15;
+    ajustePorMarca = 1;
   } else if (marcasMedia.includes(datos.marca)) {
-    puntajeDemanda += 10;
+    ajustePorMarca = 0;
   } else {
-    puntajeDemanda += 5;
+    ajustePorMarca = -1;
   }
-  
-  // Determinar nivel de demanda
-  if (puntajeDemanda >= 75) {
-    return {
-      nivel: "Muy alta demanda",
-      descripcion: "Modelo muy solicitado",
-      icono: "Flame",
-      color: "text-red-600",
-      bgColor: "bg-red-50",
-      borderColor: "border-red-200"
-    };
-  } else if (puntajeDemanda >= 55) {
-    return {
-      nivel: "Alta demanda",
-      descripcion: "Buena demanda del mercado",
-      icono: "TrendingUp",
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-      borderColor: "border-green-200"
-    };
-  } else if (puntajeDemanda >= 35) {
-    return {
-      nivel: "Demanda moderada",
-      descripcion: "Demanda equilibrada",
-      icono: "BarChart3",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
-      borderColor: "border-blue-200"
-    };
-  } else if (puntajeDemanda >= 20) {
-    return {
-      nivel: "Baja demanda",
-      descripcion: "Demanda limitada",
-      icono: "AlertTriangle",
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
-      borderColor: "border-orange-200"
-    };
+
+  let ajustePorAntiguedad = 0;
+  if (antiguedad <= 2) {
+    ajustePorAntiguedad = 1;
+  } else if (antiguedad <= 5) {
+    ajustePorAntiguedad = 0;
   } else {
-    return {
-      nivel: "Muy baja demanda",
-      descripcion: "Mercado saturado",
-      icono: "TrendingDown",
-      color: "text-red-500",
-      bgColor: "bg-red-50",
-      borderColor: "border-red-200"
-    };
+    ajustePorAntiguedad = -1;
   }
+
+  // Solo aplicar upgrade a "Muy alta demanda" si tiene factores muy positivos
+  if (nivelDemanda === "Alta demanda" && ajustePorMarca === 1 && ajustePorAntiguedad === 1) {
+    nivelDemanda = "Muy alta demanda";
+    descripcion = "Modelo muy solicitado";
+    icono = "Flame";
+    color = "text-red-600";
+    bgColor = "bg-red-50";
+    borderColor = "border-red-200";
+  }
+
+  return {
+    nivel: nivelDemanda,
+    descripcion: descripcion,
+    icono: icono,
+    color: color,
+    bgColor: bgColor,
+    borderColor: borderColor
+  };
 };
 
 import { supabase } from "@/integrations/supabase/client";

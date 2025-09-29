@@ -71,7 +71,7 @@ export const PriceAnalysisChart = memo(function PriceAnalysisChart({
               {porcentajeAjuste !== 0 && (
                 <div className="flex items-center justify-center gap-2">
                   <Badge variant={porcentajeAjuste > 0 ? "default" : "secondary"}>
-                    {porcentajeAjuste > 0 ? "+" : ""}{porcentajeAjuste.toFixed(1)}% por kilometraje
+                    {porcentajeAjuste > 0 ? "+" : ""}{Math.round(porcentajeAjuste)}% por kilometraje
                   </Badge>
                 </div>
               )}
@@ -132,7 +132,7 @@ export const PriceAnalysisChart = memo(function PriceAnalysisChart({
                       {formatearPrecio(rango.inicio)} - {formatearPrecio(rango.fin)}
                     </span>
                     <span className="font-semibold">
-                      {rango.cantidad} autos ({rango.porcentaje.toFixed(1)}%)
+                      {rango.cantidad} autos ({Math.round(rango.porcentaje)}%)
                     </span>
                   </div>
                   <Progress value={rango.porcentaje} className="h-2" />

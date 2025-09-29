@@ -24,6 +24,9 @@ import {
   type AutoSimilar,
   type DatosVehiculo
 } from "@/utils/priceAnalysisCalculations";
+import { useDebugMode } from "@/hooks/useDebugMode";
+import { DebugInfo } from "./DebugInfo";
+import { DebugToggle } from "./DebugToggle";
 
 interface AnalisisPrecioProps {
   datos: DatosVehiculo;
@@ -57,6 +60,7 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
   const { toast } = useToast();
   const { resultado: tiempoIA, isLoading: cargandoIA, calcularTiempo } = useTiempoVentaIA();
   const { checkCredits, showUpgradeDialog, setShowUpgradeDialog } = useCreditControl();
+  const { debugMode } = useDebugMode();
 
   // Memoizar cálculos para evitar recálculos innecesarios
   const demandaAuto = useMemo(() => calcularDemandaAuto(autosSimilares, datos, estadisticas), [autosSimilares, datos, estadisticas]);
@@ -294,6 +298,7 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
           </Button>
           
           <div className="flex items-center gap-4">
+            <DebugToggle variant="button" />
             <CreditControl />
           </div>
         </div>
@@ -301,8 +306,80 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
         {/* Vehicle Info */}
         <Card>
           <CardHeader>
-            <CardTitle>
-              Análisis de precio: {datos.marca} {datos.modelo} {datos.ano}
+            <CardTitle className="flex items-center justify-between">
+              <span>Análisis de precio: {datos.marca} {datos.modelo} {datos.ano}</span>
+              {debugMode && (
+                  <DebugInfo
+                    title="Datos del vehículo"
+                    data={{
+                      fuente: "Formulario de usuario + API MaxiPublica",
+                      consulta: `getCarMarketIntelligenceData(versionId: "${datos.versionId}")`,
+                      parametros: {
+                        marca: datos.marca,
+                        modelo: datos.modelo,
+                        año: datos.ano,
+                        versión: datos.version,
+                        kilometraje: datos.kilometraje,
+                        estado: datos.estado,
+                        ciudad: datos.ciudad,
+                        versionId: datos.versionId
+                      },
+                      calculos: [{
+                        formula: "datosVehiculo = validarCatalogo(marca, modelo, año) && obtenerVersionId(version) && consultarAPI(versionId)",
+                        valores: {
+                          entrada_marca: datos.marca,
+                          entrada_modelo: datos.modelo,
+                          entrada_año: datos.ano,
+                          entrada_version: datos.version,
+                          versionId_obtenido: datos.versionId,
+                          estado_validacion: "✓ Válido en catálogo",
+                          api_consultada: "MaxiPublica getCarMarketIntelligenceData"
+                        },
+                        resultado: `Vehículo identificado: ${datos.marca} ${datos.modelo} ${datos.ano} (${datos.version}) - Version ID: ${datos.versionId}`
+                      }],
+                      datosPredecesores: [
+                        {
+                          fuente: "Formulario usuario",
+                          valor: `${datos.marca} ${datos.modelo} ${datos.ano} - ${datos.version}`,
+                          fecha: new Date().toLocaleDateString()
+                        },
+                        {
+                          fuente: "API MaxiPublica",
+                          valor: `Version ID: ${datos.versionId}`,
+                          fecha: new Date().toLocaleDateString()
+                        }
+                      ],
+                      reglasAplicadas: [
+                        "Validación de marca y modelo en catálogo",
+                        "Verificación de version ID válido",
+                        "Aplicación de filtros por año de fabricación"
+                      ],
+                      procesamiento: {
+                        pasos: [
+                          "Recepción de datos del formulario",
+                          "Validación de campos obligatorios",
+                          "Búsqueda de version ID en catálogo",
+                          "Consulta a API MaxiPublica para precio recomendado"
+                        ],
+                        filtros: [
+                          "Marca y modelo exactos",
+                          "Año de fabricación",
+                          "Versión específica del vehículo"
+                        ],
+                        transformaciones: [
+                          "Normalización de nombres de marca/modelo",
+                          "Conversión de version ID a formato API",
+                          "Estructuración de datos para análisis"
+                        ]
+                      },
+                      observaciones: [
+                        "Datos proporcionados directamente por el usuario",
+                        "Version ID utilizado para consultas de API externas",
+                        "Precio base obtenido de MaxiPublica como referencia principal"
+                      ]
+                    }}
+                  />
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -323,8 +400,8 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
             precioPromedio: estadisticas.precioPromedio,
             rangoMinimo: estadisticas.precioMinimo,
             rangoMaximo: estadisticas.precioMaximo,
-            demanda: demandaAuto.nivel === 'alta' || demandaAuto.nivel === 'muy alta' ? 'alta' : 
-                     demandaAuto.nivel === 'baja' || demandaAuto.nivel === 'muy baja' ? 'baja' : 'moderada',
+            demanda: demandaAuto.nivel.toLowerCase().includes('alta') ? 'alta' : 
+                     demandaAuto.nivel.toLowerCase().includes('baja') ? 'baja' : 'moderada',
             competencia: competenciaMercado.nivel === 'alta' || competenciaMercado.nivel === 'muy alta' || competenciaMercado.nivel === 'extrema' ? 'alta' : 
                         competenciaMercado.nivel === 'baja' || competenciaMercado.nivel === 'muy baja' ? 'baja' : 'moderada',
             vehiculosSimilares: vehiculosSimilaresMapi

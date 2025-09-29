@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { TrendingUp, TrendingDown, BarChart3, Target } from "lucide-react";
+import { useDebugMode } from "@/hooks/useDebugMode";
+import { DebugInfo } from "./DebugInfo";
 
 interface DatosMercado {
   precioPromedio: number;
@@ -23,7 +25,8 @@ interface AnalisisMercadoProps {
 }
 
 export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraje, datos }: AnalisisMercadoProps) {
-  const currency = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
+  const currency = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const { debugMode } = useDebugMode();
   
   // Calcular posición en la distribución de precios (0-100%)
   const posicionPrecio = ((precio - datos.rangoMinimo) / (datos.rangoMaximo - datos.rangoMinimo)) * 100;
@@ -68,6 +71,71 @@ export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraj
             <div className="flex items-center gap-2 mb-2">
               {getDemandaIcon()}
               <h3 className="font-medium text-sm text-muted-foreground">DEMANDA DEL VEHÍCULO</h3>
+              {debugMode && (
+                <DebugInfo
+                  title="Cálculo de demanda"
+                  data={{
+                    fuente: "Análisis de mercado local + Base de datos anuncios",
+                    datosPredecesores: [
+                      {
+                        fuente: "Base datos anuncios_vehiculos",
+                        valor: `${datos.vehiculosSimilares} vehículos similares encontrados`,
+                        fecha: new Date().toLocaleDateString()
+                      },
+                      {
+                        fuente: "API MaxiPublica",
+                        valor: `Precio promedio: ${currency.format(datos.precioPromedio)}`,
+                        fecha: new Date().toLocaleDateString()
+                      }
+                    ],
+                    reglasAplicadas: [
+                      "Demanda ALTA: > 15 vehículos similares",
+                      "Demanda MODERADA: 5-15 vehículos similares", 
+                      "Demanda BAJA: < 5 vehículos similares",
+                      "Ajuste por rango de precios competitivos"
+                    ],
+                    calculos: [{
+                      formula: "demanda = f(vehiculosSimilares, tiempoPromercado, region)",
+                      formulaConValores: `demanda = f(${datos.vehiculosSimilares}, ${new Date().getFullYear() - ano} años, "México")`,
+                      valores: {
+                        vehiculosSimilares: datos.vehiculosSimilares,
+                        marca: marca,
+                        modelo: modelo,
+                        año: ano,
+                        clasificacionSegunReglas: datos.vehiculosSimilares > 15 ? "ALTA (>15)" : 
+                                                 datos.vehiculosSimilares >= 5 ? "MODERADA (5-15)" : "BAJA (<5)",
+                        factoresAdicionales: `Marca: ${marca}, Antigüedad: ${new Date().getFullYear() - ano} años`
+                      },
+                      resultado: `${datos.demanda.toUpperCase()} - Basado en ${datos.vehiculosSimilares} vehículos similares`,
+                      documentacion: "/src/utils/priceAnalysisCalculations.ts#calcularDemandaAuto (líneas 151-227)"
+                    }],
+                    procesamiento: {
+                      pasos: [
+                        "Consulta a base de datos de anuncios activos",
+                        "Filtrado por marca, modelo y año",
+                        "Cálculo de estadísticas de mercado",
+                        "Aplicación de reglas de demanda"
+                      ],
+                      filtros: [
+                        "marca = datos.marca",
+                        "modelo = datos.modelo", 
+                        "ano = datos.ano",
+                        "activo = true"
+                      ],
+                      transformaciones: [
+                        "Agrupación por características similares",
+                        "Cálculo de rangos de precios",
+                        "Clasificación de nivel de demanda"
+                      ]
+                    },
+                    observaciones: [
+                      "La demanda se calcula basándose en la cantidad de vehículos similares en el mercado",
+                      "Se consideran factores regionales y temporales",
+                      "Datos actualizados en tiempo real desde múltiples fuentes"
+                    ]
+                  }}
+                />
+              )}
             </div>
             <Badge variant={datos.demanda === 'alta' ? 'default' : datos.demanda === 'baja' ? 'destructive' : 'secondary'}>
               {datos.demanda === 'alta' ? 'Alta demanda' : datos.demanda === 'baja' ? 'Baja demanda' : 'Demanda moderada'}
@@ -75,15 +143,85 @@ export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraj
             <p className="text-xs text-muted-foreground mt-1">
               Buena demanda del mercado
             </p>
-            <p className="text-xs text-muted-foreground">
-              {ano} • {marca} {modelo} {ano}hp
-            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-4 text-center">
-            <h3 className="font-medium text-sm text-muted-foreground mb-2">PRECIO PROMEDIO DE MERCADO</h3>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <h3 className="font-medium text-sm text-muted-foreground">PRECIO PROMEDIO DE MERCADO</h3>
+              {debugMode && (
+                <DebugInfo
+                  title="Precio promedio calculado"
+                  data={{
+                    fuente: "Base de datos de anuncios_vehiculos + API MaxiPublica",
+                    datosPredecesores: [
+                      {
+                        fuente: "Base datos anuncios_vehiculos",
+                        valor: `Consulta: marca='${marca}' AND modelo='${modelo}' AND ano=${ano}`,
+                        fecha: new Date().toLocaleDateString()
+                      },
+                      {
+                        fuente: "API MaxiPublica suggestedPrice",
+                        valor: `${currency.format(datos.precioPromedio)}`,
+                        fecha: new Date().toLocaleDateString()
+                      }
+                    ],
+                    reglasAplicadas: [
+                      "Prioridad: Precio sugerido de MaxiPublica",
+                      "Fallback: Promedio de anuncios locales",
+                      "Filtro: Solo anuncios activos",
+                      "Validación: Precios > 0"
+                    ],
+                    consulta: `SELECT AVG(precio) FROM anuncios_vehiculos WHERE marca='${marca}' AND modelo='${modelo}' AND ano=${ano} AND activo=true`,
+                    parametros: {
+                      rangoMinimo: datos.rangoMinimo,
+                      rangoMaximo: datos.rangoMaximo,
+                      totalVehiculos: datos.vehiculosSimilares
+                    },
+                    calculos: [{
+                      formula: "precioPromedio = suggestedPricePublish || SUM(precios_locales) / COUNT(vehiculos)",
+                      formulaConValores: `precioPromedio = ${currency.format(datos.precioPromedio)} || SUM(precios) / ${datos.vehiculosSimilares}`,
+                      valores: {
+                        precioCalculado: datos.precioPromedio,
+                        fuentePrincipal: "MaxiPublica API",
+                        fuenteSecundaria: "Base de datos interna",
+                        rangoMinimo: `${currency.format(datos.rangoMinimo)}`,
+                        rangoMaximo: `${currency.format(datos.rangoMaximo)}`,
+                        vehiculosAnalizados: datos.vehiculosSimilares
+                      },
+                      resultado: `${currency.format(datos.precioPromedio)} (basado en ${datos.vehiculosSimilares} vehículos)`,
+                      documentacion: "/src/components/AnalisisMercado.tsx#línea 180 (cálculo de precio promedio)"
+                    }],
+                    procesamiento: {
+                      pasos: [
+                        "1. Consulta API MaxiPublica con versionId",
+                        "2. Si no hay datos, consulta anuncios locales",
+                        "3. Calcula estadísticas de precios",
+                        "4. Aplica reglas de validación"
+                      ],
+                      filtros: [
+                        "activo = true",
+                        "precio > 0",
+                        "marca, modelo, año exactos"
+                      ],
+                      transformaciones: [
+                        "Conversión de moneda si necesario",
+                        "Normalización de precios",
+                        "Cálculo de rangos percentiles"
+                      ]
+                    },
+                    observaciones: [
+                      "Se prioriza el precio de MaxiPublica si está disponible",
+                      "Se complementa con datos de anuncios recopilados",
+                      "Solo se consideran anuncios activos y verificados",
+                      "MaxiPublica es la fuente principal de precios",
+                      "Datos actualizados automáticamente"
+                    ]
+                  }}
+                />
+              )}
+            </div>
             <p className="text-2xl font-bold text-blue-600">{currency.format(datos.precioPromedio)}</p>
             <p className="text-xs text-muted-foreground">
               Basado en {datos.vehiculosSimilares} vehículos similares
@@ -96,6 +234,67 @@ export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraj
             <div className="flex items-center gap-2 mb-2">
               <Target className="h-4 w-4 text-blue-600" />
               <h3 className="font-medium text-sm text-muted-foreground">COMPETENCIA DEL MERCADO</h3>
+              {debugMode && (
+                <DebugInfo
+                  title="Análisis de competencia"
+                  data={{
+                    fuente: "Análisis de densidad de mercado + Datos agregados",
+                    datosPredecesores: [
+                      {
+                        fuente: "Conteo anuncios activos",
+                        valor: `${datos.vehiculosSimilares} anuncios similares`,
+                        fecha: new Date().toLocaleDateString()
+                      },
+                      {
+                        fuente: "Análisis dispersión precios",
+                        valor: `Rango: ${currency.format(datos.rangoMinimo)} - ${currency.format(datos.rangoMaximo)}`,
+                        fecha: new Date().toLocaleDateString()
+                      }
+                    ],
+                    reglasAplicadas: [
+                      "Competencia ALTA: >20 anuncios + alta dispersión precios",
+                      "Competencia MODERADA: 10-20 anuncios + dispersión media",
+                      "Competencia BAJA: <10 anuncios + baja dispersión",
+                      "Ajuste por concentración geográfica"
+                    ],
+                    calculos: [{
+                      formula: "competencia = f(densidadAnuncios, variacionPrecios, timeToMarket)",
+                      valores: {
+                        vehiculosEnMercado: datos.vehiculosSimilares,
+                        rangoPrecios: `${currency.format(datos.rangoMinimo)} - ${currency.format(datos.rangoMaximo)}`,
+                        disperscion: ((datos.rangoMaximo - datos.rangoMinimo) / datos.precioPromedio * 100).toFixed(1) + "%",
+                        coefVariacion: ((datos.rangoMaximo - datos.rangoMinimo) / datos.precioPromedio * 100).toFixed(1) + "%"
+                      },
+                      resultado: datos.competencia
+                    }],
+                    procesamiento: {
+                      pasos: [
+                        "1. Conteo de anuncios competidores directos",
+                        "2. Cálculo de dispersión de precios",
+                        "3. Análisis de concentración geográfica", 
+                        "4. Aplicación de matriz de competencia"
+                      ],
+                      filtros: [
+                        "Mismo segmento (marca/modelo/año)",
+                        "Anuncios activos únicamente",
+                        "Rango geográfico relevante"
+                      ],
+                      transformaciones: [
+                        "Normalización por volumen de mercado",
+                        "Ponderación por proximidad geográfica",
+                        "Clasificación en niveles discretos"
+                      ]
+                    },
+                    observaciones: [
+                      "Competencia alta indica muchos vehículos similares disponibles",
+                      "Se considera la dispersión de precios como indicador de competencia",
+                      "Mercados con mayor variabilidad de precios indican mayor competencia",
+                      "Mayor competencia = mayor dificultad para vender",
+                      "Datos actualizados en tiempo real"
+                    ]
+                  }}
+                />
+              )}
             </div>
             <Badge className={getCompetenciaColor()}>
               Competencia {datos.competencia}

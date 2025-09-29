@@ -1570,6 +1570,7 @@ export type Database = {
           contacto_telefono: string | null
           correo_electronico: string
           created_at: string
+          debug_mode: boolean | null
           id: string
           negocio_nombre: string | null
           nombre: string
@@ -1588,6 +1589,7 @@ export type Database = {
           contacto_telefono?: string | null
           correo_electronico: string
           created_at?: string
+          debug_mode?: boolean | null
           id?: string
           negocio_nombre?: string | null
           nombre: string
@@ -1606,6 +1608,7 @@ export type Database = {
           contacto_telefono?: string | null
           correo_electronico?: string
           created_at?: string
+          debug_mode?: boolean | null
           id?: string
           negocio_nombre?: string | null
           nombre?: string

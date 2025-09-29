@@ -183,7 +183,7 @@ export default function MisAutosProfesional() {
     cargarAutosEnVenta();
   }, []);
 
-  const currency = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
+  const currency = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
   const guardarPrecios = async () => {
     if (!editingPrecios) return;

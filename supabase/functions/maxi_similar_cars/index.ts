@@ -94,7 +94,15 @@ serve(async (req) => {
         dateCreated: car.dateCreated,
         daysInStock: car.daysInStock,
         sellerType: car.sellerType,
-        location: car.location
+        address_line: car.location?.address_line || "",
+        zip_code: car.location?.zip_code || "",
+        subneighborhood: car.location?.subneighborhood || null,
+        neighborhood: car.location?.neighborhood?.name || null,
+        city: car.location?.city?.name || null,
+        state: car.location?.state?.name || null,
+        country: car.location?.country?.name || null,
+        latitude: car.location?.latitude || null,
+        longitude: car.location?.longitude || null
       })) || [],
       trend: data.trend ? {
         name: data.trend.name,
