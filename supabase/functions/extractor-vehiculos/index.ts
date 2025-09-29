@@ -181,7 +181,7 @@ function extractData(html: string, selectores: Record<string, string>) {
 
     // Seleccionar el año más frecuente o más reciente
     if (anosEncontrados.length > 0) {
-      const frecuencias = {};
+      const frecuencias: Record<number, number> = {};
       anosEncontrados.forEach(ano => {
         frecuencias[ano] = (frecuencias[ano] || 0) + 1;
       });
@@ -257,11 +257,11 @@ function extractData(html: string, selectores: Record<string, string>) {
         // Extraer modelo de manera más inteligente
         const inicioModelo = posicionMarca + marcaEncontrada.length;
         const textoModelo = data.titulo.substring(inicioModelo).trim();
-        const palabras = textoModelo.split(/[\s\-,]+/).filter(p => p.length > 0);
+        const palabras = textoModelo.split(/[\s\-,]+/).filter((p: string) => p.length > 0);
         
         if (palabras.length > 0) {
           // Filtrar palabras que no son parte del modelo
-          const modeloPalabras = palabras.filter(palabra => {
+          const modeloPalabras = palabras.filter((palabra: string) => {
             const p = palabra.toLowerCase();
             return !p.match(/^\d{4}$/) && // años
                    !p.match(/^[0-9.]+[lL]?$/) && // cilindrada
@@ -494,13 +494,13 @@ const extraerAnuncio = async (url: string, config: ExtraccionConfig): Promise<an
     
   } catch (error) {
     const tiempoRespuesta = Date.now() - startTime;
-    const estado = error.name === 'TimeoutError' ? 'timeout' : 'error';
+    const estado = (error as any)?.name === 'TimeoutError' ? 'timeout' : 'error';
     
     const log: LogExtraccion = {
       sitio_web: config.sitio_web,
       url,
       estado,
-      mensaje: error.message,
+      mensaje: error instanceof Error ? error.message : 'Unknown error',
       tiempo_respuesta: tiempoRespuesta,
       user_agent: userAgent
     };
@@ -557,7 +557,7 @@ serve(async (req) => {
         const resultado = await extraerAnuncio(url, config);
         resultados.push({ url, ...resultado });
       } catch (error) {
-        errores.push({ url, error: error.message });
+        errores.push({ url, error: error instanceof Error ? error.message : 'Unknown error' });
       }
       
       // Delay entre requests para evitar bloqueos
@@ -577,7 +577,7 @@ serve(async (req) => {
         success: true,
         sitio_web,
         procesados: resultados.length,
-        errores: errores.length,
+        errores_count: errores.length,
         resultados,
         errores
       }),
@@ -589,7 +589,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error en extractor-vehiculos:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

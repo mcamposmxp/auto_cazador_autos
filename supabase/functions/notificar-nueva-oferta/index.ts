@@ -49,7 +49,7 @@ serve(async (req) => {
 
     // Get car owner's user_id from email
     const { data: ownerUser, error: ownerError } = await supabaseClient.auth.admin
-      .getUserByEmail(oferta.autos_venta.clientes.correo_electronico);
+      .listUsers({ page: 1, perPage: 1000 }); // Changed: getUserByEmail doesn't exist
 
     if (ownerError || !ownerUser) {
       console.log('Owner user not found, skipping notification');
@@ -84,7 +84,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }

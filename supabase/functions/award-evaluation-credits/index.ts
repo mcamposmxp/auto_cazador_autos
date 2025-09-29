@@ -88,13 +88,20 @@ Deno.serve(async (req) => {
 
     const CREDITS_PER_EVALUATION = 2;
 
+    // First get current values
+    const { data: currentCredits } = await supabase
+      .from('user_credits')
+      .select('credits_available, credits_earned_evaluations, evaluation_credits_this_month')
+      .eq('user_id', user_id)
+      .single();
+
     // Award credits
     const { error: updateError } = await supabase
       .from('user_credits')
       .update({
-        credits_available: supabase.sql`credits_available + ${CREDITS_PER_EVALUATION}`,
-        credits_earned_evaluations: supabase.sql`credits_earned_evaluations + ${CREDITS_PER_EVALUATION}`,
-        evaluation_credits_this_month: supabase.sql`evaluation_credits_this_month + ${CREDITS_PER_EVALUATION}`,
+        credits_available: (currentCredits?.credits_available || 0) + CREDITS_PER_EVALUATION,
+        credits_earned_evaluations: (currentCredits?.credits_earned_evaluations || 0) + CREDITS_PER_EVALUATION,
+        evaluation_credits_this_month: (currentCredits?.evaluation_credits_this_month || 0) + CREDITS_PER_EVALUATION,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', user_id);
@@ -135,7 +142,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || 'Error interno del servidor' 
+        error: error instanceof Error ? error.message : 'Error interno del servidor' 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );

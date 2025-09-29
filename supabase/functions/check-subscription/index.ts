@@ -94,7 +94,7 @@ serve(async (req) => {
       logStep("Active subscription found", { subscriptionId: subscription.id, planType, endDate: subscriptionEnd });
     } else {
       // Check for recent one-time purchases
-      const recentSessions = sessions.data.filter(session => {
+      const recentSessions = sessions.data.filter((session: any) => {
         const sessionDate = new Date(session.created * 1000);
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);

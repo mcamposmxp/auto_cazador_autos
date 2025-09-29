@@ -82,13 +82,20 @@ Deno.serve(async (req) => {
       )
     }
 
+    // First get current values
+    const { data: currentCredits } = await supabase
+      .from('user_credits')
+      .select('credits_available, credits_earned_referrals, referrals_count_this_month')
+      .eq('user_id', referral.referrer_id)
+      .single();
+
     // Award 5 credits to referrer
     const { error: updateCreditsError } = await supabase
       .from('user_credits')
       .update({
-        credits_available: supabase.raw('credits_available + 5'),
-        credits_earned_referrals: supabase.raw('credits_earned_referrals + 5'),
-        referrals_count_this_month: supabase.raw('referrals_count_this_month + 1'),
+        credits_available: (currentCredits?.credits_available || 0) + 5,
+        credits_earned_referrals: (currentCredits?.credits_earned_referrals || 0) + 5,
+        referrals_count_this_month: (currentCredits?.referrals_count_this_month || 0) + 1,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', referral.referrer_id)
@@ -115,11 +122,18 @@ Deno.serve(async (req) => {
       console.error('Error updating referral:', updateReferralError)
     }
 
+    // Get current usage count first
+    const { data: codeData } = await supabase
+      .from('referral_codes')
+      .select('uses_count')
+      .eq('code', referral.referral_code)
+      .single();
+
     // Update referral code usage count
     const { error: updateCodeError } = await supabase
       .from('referral_codes')
       .update({
-        uses_count: supabase.raw('uses_count + 1')
+        uses_count: (codeData?.uses_count || 0) + 1
       })
       .eq('code', referral.referral_code)
 

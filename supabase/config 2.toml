@@ -1,11 +1,5 @@
 project_id = "qflkgtejwqudtceszguf"
 
-[functions.api_tokens]
-verify_jwt = false
-
-[functions.maxi_similar_cars]
-verify_jwt = false
-
 [functions.calcular-tiempo-venta-ia]
 verify_jwt = false
 

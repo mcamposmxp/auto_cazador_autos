@@ -256,6 +256,121 @@ export const calcularDemandaAuto = (autosSimilares: AutoSimilar[], datos: DatosV
   }
 };
 
+import { supabase } from "@/integrations/supabase/client";
+
+// Nueva función para obtener datos de competencia desde maxi_similar_cars
+export const obtenerDatosCompetenciaMaxi = async (versionId: string) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('maxi_similar_cars', {
+      body: { versionId }
+    });
+    
+    if (error) throw error;
+    
+    return {
+      totalAnuncios: data?.similarsCars?.length || 0,
+      similarsCars: data?.similarsCars || []
+    };
+  } catch (error) {
+    console.error('Error al obtener datos de competencia:', error);
+    return { totalAnuncios: 0, similarsCars: [] };
+  }
+};
+
+// Nueva función asíncrona que usa datos de maxi_similar_cars
+export const calcularCompetenciaMercadoMaxi = async (
+  versionId: string,
+  estadoSeleccionado: string, 
+  tipoVendedorSeleccionado: string
+) => {
+  const { totalAnuncios, similarsCars } = await obtenerDatosCompetenciaMaxi(versionId);
+  
+  // Análisis de competencia considerando también filtros activos
+  let factorCompetencia = totalAnuncios;
+  
+  // Ajustar según filtros aplicados (menos filtros = más competencia general)
+  if (estadoSeleccionado === "todos") {
+    factorCompetencia *= 1.3; // Más competencia al ver todo el país
+  }
+  if (tipoVendedorSeleccionado === "todos") {
+    factorCompetencia *= 1.2; // Más competencia incluyendo ambos tipos
+  }
+  
+  // Análisis de dispersión de precios para entender la competencia
+  let intensidadCompetencia = "normal";
+  if (similarsCars.length > 1) {
+    const precios = similarsCars.map((auto: any) => auto.price).filter((p: number) => p > 0);
+    if (precios.length > 1) {
+      const precioPromedio = precios.reduce((a: number, b: number) => a + b, 0) / precios.length;
+      const varianza = precios.reduce((acc: number, precio: number) => acc + Math.pow(precio - precioPromedio, 2), 0) / precios.length;
+      const coeficienteVariacion = Math.sqrt(varianza) / precioPromedio;
+      
+      if (coeficienteVariacion > 0.4) {
+        intensidadCompetencia = "agresiva"; // Precios muy dispersos = competencia agresiva
+      } else if (coeficienteVariacion < 0.15) {
+        intensidadCompetencia = "estable"; // Precios similares = mercado estable
+      }
+    }
+  }
+  
+  if (factorCompetencia <= 4) {
+    return {
+      nivel: "Muy baja competencia",
+      descripcion: "Excelente oportunidad de venta",
+      icono: "Shield",
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+      borderColor: "border-emerald-200",
+      cantidad: totalAnuncios,
+      intensidad: intensidadCompetencia
+    };
+  } else if (factorCompetencia <= 8) {
+    return {
+      nivel: "Baja competencia",
+      descripcion: "Buenas condiciones del mercado",
+      icono: "TrendingUp",
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-200",
+      cantidad: totalAnuncios,
+      intensidad: intensidadCompetencia
+    };
+  } else if (factorCompetencia <= 15) {
+    return {
+      nivel: "Competencia moderada",
+      descripcion: "Mercado equilibrado",
+      icono: "BarChart3",
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
+      cantidad: totalAnuncios,
+      intensidad: intensidadCompetencia
+    };
+  } else if (factorCompetencia <= 25) {
+    return {
+      nivel: "Alta competencia",
+      descripcion: "Mercado muy competitivo",
+      icono: "AlertTriangle",
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+      borderColor: "border-orange-200",
+      cantidad: totalAnuncios,
+      intensidad: intensidadCompetencia
+    };
+  } else {
+    return {
+      nivel: "Competencia extrema",
+      descripcion: "Mercado saturado",
+      icono: "TrendingDown",
+      color: "text-red-600",
+      bgColor: "bg-red-50",
+      borderColor: "border-red-200",
+      cantidad: totalAnuncios,
+      intensidad: intensidadCompetencia
+    };
+  }
+};
+
 export const calcularCompetenciaMercado = (
   autosSimilares: AutoSimilar[], 
   estadoSeleccionado: string, 

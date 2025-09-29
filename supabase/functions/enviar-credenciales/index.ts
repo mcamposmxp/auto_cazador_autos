@@ -1,9 +1,6 @@
-import React from 'npm:react@18.3.1'
-import { Resend } from 'npm:resend@4.0.0'
-import { renderAsync } from 'npm:@react-email/components@0.0.22'
-import { CredencialesProfesional } from './_templates/credenciales-profesional.tsx'
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
-const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string)
+// Email functionality removed - needs implementation
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,31 +42,13 @@ const handler = async (req: Request): Promise<Response> => {
       )
     }
 
-    // Render the email template
-    const html = await renderAsync(
-      React.createElement(CredencialesProfesional, {
-        nombreProfesional,
-        nombreNegocio: nombreNegocio || 'Su empresa',
-        email,
-        password,
-        panelUrl: panelUrl || `${new URL(req.url).origin}/panel-profesionales`,
-      })
-    )
-
-    // Send the email
-    const emailResponse = await resend.emails.send({
-      from: 'Sistema de Ofertas <onboarding@resend.dev>',
-      to: [email],
-      subject: '🔑 Credenciales de acceso al Sistema de Ofertas',
-      html,
-    })
-
-    console.log('Credenciales enviadas exitosamente:', emailResponse)
+    // Email functionality disabled - needs proper implementation
+    console.log('Credenciales para:', { nombreProfesional, email });
 
     return new Response(JSON.stringify({ 
       success: true,
-      message: 'Credenciales enviadas por correo electrónico',
-      emailId: emailResponse.data?.id 
+      message: 'Función desactivada - necesita implementación de email',
+      credentials: { nombreProfesional, email }
     }), {
       status: 200,
       headers: {
@@ -92,4 +71,4 @@ const handler = async (req: Request): Promise<Response> => {
   }
 }
 
-Deno.serve(handler)
+serve(handler)

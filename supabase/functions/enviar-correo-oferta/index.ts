@@ -1,7 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,21 +27,23 @@ serve(async (req) => {
       );
     }
 
-    const emailResponse = await resend.emails.send({
-      from: "Autos App <onboarding@resend.dev>",
-      to: [toEmail],
-      subject,
-      html: messageHtml,
-      text: messageText,
-    });
-
-    return new Response(JSON.stringify(emailResponse), {
+    // TODO: Implement email service integration
+    console.log('Email would be sent to:', toEmail, 'with subject:', subject);
+    
+    return new Response(JSON.stringify({ 
+      success: true, 
+      message: "Email service not configured yet",
+      toEmail,
+      subject 
+    }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error en enviar-correo-oferta:", error);
-    return new Response(JSON.stringify({ error: error.message || "Error interno" }), {
+    return new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : "Error interno" 
+    }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });

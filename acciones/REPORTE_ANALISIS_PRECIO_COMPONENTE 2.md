@@ -7,13 +7,14 @@ El componente `AnalisisPrecio.tsx` es el núcleo del sistema de análisis de pre
 ## 1. FUENTES DE DATOS
 
 ### 1.1 Datos Principales de Entrada
+
 ```typescript
 interface DatosVehiculo {
   marca: string;          // Marca del vehículo (ej: "Toyota")
   modelo: string;         // Modelo específico (ej: "Corolla")
   ano: number;           // Año de fabricación
   version: string;       // Versión específica
-  versionId: string;     // ID para API externa (opcional)
+  versionId: string;    // ID para API externa
   kilometraje: number;   // Kilometraje del vehículo
   estado: string;        // Estado geográfico
   ciudad: string;        // Ciudad específica
@@ -21,7 +22,9 @@ interface DatosVehiculo {
 ```
 
 ### 1.2 Base de Datos Supabase - Tabla `anuncios_vehiculos`
+
 **Query Base Ejecutada:**
+
 ```sql
 SELECT * FROM anuncios_vehiculos 
 WHERE marca ILIKE 'Toyota'
@@ -35,13 +38,16 @@ LIMIT 20
 ```
 
 **Filtros Dinámicos Aplicados:**
-- **Por Estado/Ubicación:** `ubicacion ILIKE '%Ciudad de México%'`
+
+- **Por Estado/Ubicación:**`ubicacion ILIKE '%Ciudad de México%'`
 - **Por Tipo de Vendedor:**
-  - Particulares: `sitio_web IN ('mercadolibre.com.mx', 'segundamano.mx')`
-  - Profesionales: `sitio_web IN ('kavak.com', 'autotrader.mx', 'seminuevos.com')`
+  - Particulares:`sitio_web IN ('mercadolibre.com.mx', 'segundamano.mx')`
+  - Profesionales:`sitio_web IN ('kavak.com', 'autotrader.mx', 'seminuevos.com')`
 
 ### 1.3 API Externa de Inteligencia de Mercado
+
 **Edge Function:** `getCarMarketIntelligenceData`
+
 ```typescript
 // Datos obtenidos de MaxiPublica API
 interface MarketIntelligenceData {
@@ -52,7 +58,9 @@ interface MarketIntelligenceData {
 ```
 
 ### 1.4 Datos Sintéticos (Fallback)
+
 Cuando no hay datos reales disponibles, se generan automáticamente:
+
 ```typescript
 // Factores de ajuste por ubicación
 const factoresEstado = {
@@ -71,6 +79,7 @@ if (tipoVendedor === "particulares") precioBase *= 0.93;  // -7%
 ## 2. VARIABLES DE ESTADO PRINCIPALES
 
 ### 2.1 Estados de Datos
+
 ```typescript
 const [autosSimilares, setAutosSimilares] = useState<AutoSimilar[]>([]);
 const [estadisticas, setEstadisticas] = useState({
@@ -84,6 +93,7 @@ const [estadisticas, setEstadisticas] = useState({
 ```
 
 ### 2.2 Estados de Interacción
+
 ```typescript
 const [precioSeleccionado, setPrecioSeleccionado] = useState(0);
 const [estadoSeleccionado, setEstadoSeleccionado] = useState("todos");
@@ -92,6 +102,7 @@ const [kilometrajeSeleccionado, setKilometrajeSeleccionado] = useState(0);
 ```
 
 ### 2.3 Estados de Kilometraje
+
 ```typescript
 const [estadisticasKilometraje, setEstadisticasKilometraje] = useState({
   promedio: 0,
@@ -104,15 +115,18 @@ const [estadisticasKilometraje, setEstadisticasKilometraje] = useState({
 ## 3. PROCESAMIENTO Y CÁLCULOS
 
 ### 3.1 Función Principal de Carga de Datos
+
 **Función:** `cargarAnalisis()`
 
 **Flujo de Procesamiento:**
+
 1. **Construcción de Query Dinámica**
 2. **Aplicación de Filtros**
 3. **Generación de Datos Sintéticos (si necesario)**
 4. **Cálculo de Estadísticas**
 
 ### 3.2 Cálculo de Estadísticas de Precio
+
 ```typescript
 // Procesamiento de precios obtenidos
 const precios = autosSimilaresProcesados.map(auto => auto.precio);
@@ -132,6 +146,7 @@ setEstadisticas({
 ```
 
 ### 3.3 Algoritmo de Ajuste por Kilometraje
+
 **Función:** `calcularFactorKilometraje()`
 
 ```typescript
@@ -155,11 +170,13 @@ const calcularFactorKilometraje = (kilometrajeSeleccionado, autosSimilares) => {
 ```
 
 ### 3.4 Algoritmo de Cálculo de Demanda
+
 **Función:** `calcularDemandaAuto()`
 
 **Sistema de Puntuación (0-100 puntos):**
 
 #### Factor 1: Antigüedad del Vehículo (35% del peso)
+
 ```typescript
 if (antiguedad <= 2) puntajeDemanda += 35;        // Muy nuevos
 else if (antiguedad <= 5) puntajeDemanda += 28;   // Nuevos
@@ -169,6 +186,7 @@ else puntajeDemanda += 5;                          // Antiguos
 ```
 
 #### Factor 2: Análisis de Competencia (30% del peso)
+
 ```typescript
 if (totalAnuncios <= 3) puntajeDemanda += 30;     // Muy poca oferta
 else if (totalAnuncios <= 8) puntajeDemanda += 22;  // Poca oferta
@@ -178,6 +196,7 @@ else puntajeDemanda += 3;                            // Excesiva
 ```
 
 #### Factor 3: Estabilidad de Precios (20% del peso)
+
 ```typescript
 const dispersionPrecios = Math.abs(precioMaximo - precioMinimo) / precioPromedio;
 if (dispersionPrecios < 0.3) puntajeDemanda += 20;  // Estables
@@ -186,6 +205,7 @@ else puntajeDemanda += 5;                                // Inestable
 ```
 
 #### Factor 4: Prestigio de Marca (15% del peso)
+
 ```typescript
 const marcasAlta = ['Toyota', 'Honda', 'Mazda', 'Subaru'];
 const marcasMedia = ['Nissan', 'Chevrolet', 'Ford', 'Volkswagen'];
@@ -195,6 +215,7 @@ else puntajeDemanda += 5;
 ```
 
 #### Clasificación Final de Demanda:
+
 - **≥75 puntos:** "Muy alta demanda" (🔥 Flame icon)
 - **≥55 puntos:** "Alta demanda" (📈 TrendingUp icon)
 - **≥35 puntos:** "Demanda moderada" (📊 BarChart3 icon)
@@ -202,6 +223,7 @@ else puntajeDemanda += 5;
 - **<20 puntos:** "Muy baja demanda" (📉 TrendingDown icon)
 
 ### 3.5 Algoritmo de Análisis de Competencia
+
 **Función:** `calcularCompetenciaMercado()`
 
 ```typescript
@@ -225,6 +247,7 @@ else if (coeficienteVariacion < 0.15) intensidadCompetencia = "estable";
 ```
 
 ### 3.6 Integración con IA para Tiempo de Venta
+
 **Hook:** `useTiempoVentaIA`
 
 ```typescript
@@ -249,8 +272,10 @@ useEffect(() => {
 ## 4. DISTRIBUCIÓN EN EL HTML
 
 ### 4.1 Sección de Filtros y Configuración
+
 **Ubicación:** Líneas 1200-1572
 **Variables mostradas:**
+
 - `estadoSeleccionado` - Select de estados
 - `tipoVendedorSeleccionado` - Filtro de vendedores
 - `kilometrajeSeleccionado` - Slider de kilometraje
@@ -276,8 +301,10 @@ useEffect(() => {
 ```
 
 ### 4.2 Análisis de Demanda y Competencia
+
 **Ubicación:** Líneas 1100-1300
 **Variables mostradas:**
+
 - `demandaAuto.nivel` - Nivel de demanda calculado
 - `demandaAuto.descripcion` - Descripción textual
 - `competenciaMercado.nivel` - Nivel de competencia
@@ -305,8 +332,10 @@ useEffect(() => {
 ```
 
 ### 4.3 Tiempo Estimado y Precio de Venta
+
 **Ubicación:** Líneas 1577-1755
 **Variables mostradas:**
+
 - `precioSeleccionado` - Precio ajustado del slider
 - `precioAjustado` - Precio con ajuste por kilometraje
 - `porcentajeAjuste` - Porcentaje de ajuste aplicado
@@ -340,10 +369,12 @@ useEffect(() => {
 ```
 
 ### 4.4 Tabla de Autos Similares
+
 **Ubicación:** Líneas 1758 y componente `AutosSimilaresTable`
 **Variables mostradas:**
+
 - `autosSimilares` - Array de vehículos encontrados
-- Cada auto contiene: `titulo`, `precio`, `kilometraje`, `ano`, `ubicacion`, `sitio_web`
+- Cada auto contiene:`titulo`,`precio`,`kilometraje`,`ano`,`ubicacion`,`sitio_web`
 
 ```jsx
 {/* Tabla con datos filtrados */}
@@ -356,6 +387,7 @@ useEffect(() => {
 ## 5. EFECTOS Y ACTUALIZACIONES
 
 ### 5.1 Efectos Principales
+
 ```typescript
 // Cargar datos cuando cambien filtros
 useEffect(() => {
@@ -379,6 +411,7 @@ useEffect(() => {
 ```
 
 ### 5.2 Memoización para Performance
+
 ```typescript
 const demandaAuto = useMemo(() => calcularDemandaAuto(), 
   [autosSimilares, datos.ano, estadoSeleccionado, tipoVendedorSeleccionado]);
@@ -405,20 +438,20 @@ graph TD
     G --> H[setAutosSimilares]
     G --> I[setEstadisticas]
     G --> J[setEstadisticasKilometraje]
-    
+  
     K[cargarPrecioMercado] --> L[API Externa MaxiPublica]
     L --> M[Actualizar precioPromedioMercado]
-    
+  
     H --> N[useMemo: calcularDemandaAuto]
     H --> O[useMemo: calcularCompetenciaMercado]
     I --> P[useMemo: precioAjustado]
-    
+  
     N --> Q[Renderizar análisis de demanda]
     O --> R[Renderizar análisis de competencia]
     P --> S[Actualizar precioSeleccionado]
     S --> T[useTiempoVentaIA]
     T --> U[Renderizar tiempo estimado]
-    
+  
     H --> V[AutosSimilaresTable]
     V --> W[Renderizar tabla con filtros]
 ```
@@ -426,16 +459,19 @@ graph TD
 ## 7. PUNTOS CRÍTICOS Y CONSIDERACIONES
 
 ### 7.1 Manejo de Errores
+
 - **Sin datos de BD:** Generación automática de datos sintéticos
 - **Error de API:** Fallback a cálculos locales solamente
 - **Datos inconsistentes:** Filtros de validación (precio > 50,000 y < 2,000,000)
 
 ### 7.2 Performance
+
 - **Debouncing:** 800ms en cálculos de IA
 - **Memoización:** Cálculos complejos cacheados
 - **Límites:** Máximo 20 anuncios por consulta
 
 ### 7.3 Integridad de Datos
+
 - **Validación de precios:** Rangos mínimos y máximos
 - **Normalización:** Filtros ILIKE para texto
 - **Factores de ajuste:** Basados en datos reales del mercado mexicano

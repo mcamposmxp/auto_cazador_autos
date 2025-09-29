@@ -242,11 +242,11 @@ const extraccionCompleta = async (
     // Procesar solo la primera categoría para evitar timeout
     const categoria = configuracion.incluir_categorias[0] || 'autos';
     
-    if (!CATEGORIAS_ML[categoria]) {
+    if (!CATEGORIAS_ML[categoria as keyof typeof CATEGORIAS_ML]) {
       throw new Error(`Categoría no válida: ${categoria}`);
     }
     
-    const configCategoria = CATEGORIAS_ML[categoria];
+    const configCategoria = CATEGORIAS_ML[categoria as keyof typeof CATEGORIAS_ML];
     console.log(`\n🏷️ Procesando categoría: ${configCategoria.nombre}`);
     
     // Procesar TODOS los filtros para maximizar resultados
@@ -286,7 +286,7 @@ const extraccionCompleta = async (
           }
           
         } catch (error) {
-          const errorMsg = `Error en ${categoria}-${filtro}: ${error.message}`;
+          const errorMsg = `Error en ${categoria}-${filtro}: ${error instanceof Error ? error.message : 'Unknown error'}`;
           console.error(`❌ ${errorMsg}`);
           resultados.errores.push(errorMsg);
         }
@@ -343,7 +343,7 @@ const extraccionCompleta = async (
           }
         } catch (error) {
           console.error('❌ Error procesando lote:', error);
-          resultados.errores.push(`Error procesando lote: ${error.message}`);
+          resultados.errores.push(`Error procesando lote: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
         
         await randomDelay(3000, 5000);
@@ -371,14 +371,14 @@ const extraccionCompleta = async (
   } catch (error) {
     resultados.tiempo_ejecucion = Date.now() - inicioTiempo;
     console.error(`💥 Error crítico en extracción completa:`, error);
-    resultados.errores.push(`Error crítico: ${error.message}`);
+    resultados.errores.push(`Error crítico: ${error instanceof Error ? error.message : 'Unknown error'}`);
     
     return {
       ...resultados,
       anuncios_procesados: 0,
       anuncios_exitosos: 0,
       timestamp: new Date().toISOString(),
-      error_critico: error.message
+      error_critico: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 };
@@ -437,7 +437,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message 
+        error: error instanceof Error ? error.message : 'Unknown error' 
       }),
       { 
         status: 500, 

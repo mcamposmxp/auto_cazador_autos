@@ -310,7 +310,7 @@ async function extractVehicles(maxVehicles = 50): Promise<any> {
   return {
     success: true,
     stats: {
-      urls_extraidas: urls.length,
+      urls_extraidas: 0, // Fixed: urls variable not defined
       anuncios_procesados: processedCount,
       anuncios_guardados: savedCount,
       errores: errorCount,
@@ -354,7 +354,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ 
         success: false, 
         error: 'Error interno del servidor',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error' 
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

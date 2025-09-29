@@ -33,6 +33,7 @@ interface AnalisisPrecioProps {
 export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
   const navigate = useNavigate();
   const [autosSimilares, setAutosSimilares] = useState<AutoSimilar[]>([]);
+  const [vehiculosSimilaresMapi, setVehiculosSimilaresMapi] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [estadisticas, setEstadisticas] = useState({
     precioRecomendado: 0,
@@ -156,6 +157,31 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
   const cargarAnalisis = useCallback(async () => {
     setCargando(true);
     try {
+      // Obtener cantidad de vehículos similares desde maxi_similar_cars
+      const versionId = datos.versionId;
+      
+      console.log('Llamando a maxi_similar_cars con versionId:', versionId);
+      console.log('Datos del vehículo:', datos);
+      
+      try {
+        const { data: maxiData, error: maxiError } = await supabase.functions.invoke('maxi_similar_cars', {
+          body: { versionId }
+        });
+        
+        console.log('Respuesta de maxi_similar_cars:', { maxiData, maxiError });
+        
+        if (!maxiError && maxiData?.similarsCars) {
+          console.log('Cantidad de vehículos similares encontrados:', maxiData.similarsCars.length);
+          setVehiculosSimilaresMapi(maxiData.similarsCars.length);
+        } else {
+          console.warn('No se encontraron datos válidos en maxi_similar_cars:', { maxiError, maxiData });
+          setVehiculosSimilaresMapi(0);
+        }
+      } catch (maxiErr) {
+        console.error('Error al obtener datos de maxi_similar_cars:', maxiErr);
+        setVehiculosSimilaresMapi(0);
+      }
+
       // Construir consulta con filtros
       let query = supabase
         .from('anuncios_vehiculos')
@@ -301,7 +327,7 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
                      demandaAuto.nivel === 'baja' || demandaAuto.nivel === 'muy baja' ? 'baja' : 'moderada',
             competencia: competenciaMercado.nivel === 'alta' || competenciaMercado.nivel === 'muy alta' || competenciaMercado.nivel === 'extrema' ? 'alta' : 
                         competenciaMercado.nivel === 'baja' || competenciaMercado.nivel === 'muy baja' ? 'baja' : 'moderada',
-            vehiculosSimilares: autosSimilares.length
+            vehiculosSimilares: vehiculosSimilaresMapi
           }}
         />
 

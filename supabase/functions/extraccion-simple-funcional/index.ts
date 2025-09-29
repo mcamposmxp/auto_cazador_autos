@@ -168,7 +168,7 @@ async function extraccionSimpleFuncional(maxAnuncios: number = 100) {
         
       } catch (error) {
         console.error(`❌ Error procesando lote:`, error);
-        resultado.errores.push(`Lote ${Math.floor(i/tamañoLote) + 1}: ${error.message}`);
+        resultado.errores.push(`Lote ${Math.floor(i/tamañoLote) + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 
@@ -180,7 +180,7 @@ async function extraccionSimpleFuncional(maxAnuncios: number = 100) {
 
   } catch (error) {
     console.error(`❌ Error en extracción:`, error);
-    resultado.errores.push(error.message);
+    resultado.errores.push(error instanceof Error ? error.message : 'Unknown error');
   }
 
   const tiempoFin = Date.now();
@@ -234,7 +234,7 @@ serve(async (req) => {
     
     return new Response(JSON.stringify({
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
       mensaje: '❌ Error durante la extracción simple funcional'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

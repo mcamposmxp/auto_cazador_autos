@@ -204,7 +204,7 @@ async function procesarEstrategia(
     elementos_procesados: 0,
     urls_extraidas: 0,
     anuncios_procesados: 0,
-    errores: [],
+    errores: [] as string[],
     tiempo_inicio: new Date().toISOString(),
     tiempo_fin: null as string | null
   };
@@ -272,7 +272,7 @@ async function procesarEstrategia(
 
       } catch (error) {
         console.error(`❌ Error en página ${pagina}:`, error);
-        resultados.errores.push(`${parametro} página ${pagina}: ${error.message}`);
+        resultados.errores.push(`${parametro} página ${pagina}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         
         // Delay extra en caso de error
         await randomDelay(5000, 10000);
@@ -319,7 +319,7 @@ async function procesarEstrategia(
 
         } catch (error) {
           console.error(`❌ Error procesando lote ${indice + 1}:`, error);
-          resultados.errores.push(`${parametro} lote ${indice + 1}: ${error.message}`);
+          resultados.errores.push(`${parametro} lote ${indice + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
 
         // Delay entre lotes
@@ -412,7 +412,7 @@ async function extraccionMasivaCompleta(configuracion: any) {
       console.error(`❌ Error en estrategia ${estrategia}:`, error);
       resultadoFinal.estrategias_procesadas.push({
         estrategia,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         tiempo_inicio: new Date().toISOString(),
         tiempo_fin: new Date().toISOString()
       });
@@ -496,7 +496,7 @@ serve(async (req) => {
     
     return new Response(JSON.stringify({
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
       mensaje: '❌ Error durante la extracción masiva completa'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
