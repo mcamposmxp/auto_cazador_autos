@@ -44,6 +44,13 @@ interface DatosMercado {
   demanda: 'baja' | 'moderada' | 'alta';
   competencia: 'baja' | 'moderada' | 'alta';
   vehiculosSimilares: number;
+  distribucionPrecios: Array<{
+    inicio: number;
+    fin: number;
+    cantidad: number;
+    porcentaje: number;
+    metodo?: 'cuartiles' | 'desviacion' | 'lineal' | 'fijo';
+  }>;
 }
 
 export default function MisAutosProfesional() {
@@ -113,14 +120,24 @@ export default function MisAutosProfesional() {
     const factorKm = Math.max(0.6, 1 - (auto.kilometraje / 200000) * 0.4);
     
     const precioPromedio = Math.round(precioBase * factorAno * factorKm);
+    const rangoMinimo = Math.round(precioPromedio * 0.75);
+    const rangoMaximo = Math.round(precioPromedio * 1.35);
     
+    // Simulación simple de distribución de precios
     return {
       precioPromedio,
-      rangoMinimo: Math.round(precioPromedio * 0.75),
-      rangoMaximo: Math.round(precioPromedio * 1.35),
+      rangoMinimo,
+      rangoMaximo,
       demanda: auto.ano >= 2020 ? 'alta' : auto.ano >= 2015 ? 'moderada' : 'baja',
       competencia: 'moderada',
-      vehiculosSimilares: Math.floor(Math.random() * 15) + 5
+      vehiculosSimilares: Math.floor(Math.random() * 15) + 5,
+      distribucionPrecios: [
+        { inicio: rangoMinimo, fin: rangoMinimo + (rangoMaximo - rangoMinimo) * 0.2, cantidad: 2, porcentaje: 10, metodo: 'lineal' as const },
+        { inicio: rangoMinimo + (rangoMaximo - rangoMinimo) * 0.2, fin: rangoMinimo + (rangoMaximo - rangoMinimo) * 0.4, cantidad: 3, porcentaje: 15, metodo: 'lineal' as const },
+        { inicio: rangoMinimo + (rangoMaximo - rangoMinimo) * 0.4, fin: rangoMinimo + (rangoMaximo - rangoMinimo) * 0.6, cantidad: 10, porcentaje: 50, metodo: 'lineal' as const },
+        { inicio: rangoMinimo + (rangoMaximo - rangoMinimo) * 0.6, fin: rangoMinimo + (rangoMaximo - rangoMinimo) * 0.8, cantidad: 4, porcentaje: 20, metodo: 'lineal' as const },
+        { inicio: rangoMinimo + (rangoMaximo - rangoMinimo) * 0.8, fin: rangoMaximo, cantidad: 1, porcentaje: 5, metodo: 'lineal' as const }
+      ]
     };
   };
 

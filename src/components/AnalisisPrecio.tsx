@@ -43,6 +43,7 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
     precioMinimo: 0,
     precioMaximo: 0,
     precioPromedio: 0,
+    precioPromedioBruto: 0, // Valor sin redondear
     precioPromedioMercado: 0,
     totalAnuncios: 0
   });
@@ -104,41 +105,62 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('getCarMarketIntelligenceData', {
+      // Obtener datos de vehículos similares desde maxi_similar_cars
+      const { data, error } = await supabase.functions.invoke('maxi_similar_cars', {
         body: { versionId: datos.versionId }
       });
 
       if (error) {
-        console.error('Error getting market intelligence data:', error);
+        console.error('Error getting similar cars data:', error);
         toast({
           title: "Error en precio",
-          description: "No se pudo obtener el precio recomendado de MaxiPublica",
+          description: "No se pudo obtener el precio promedio de vehículos similares",
           variant: "destructive"
         });
         return;
       }
 
-      if (data?.suggestedPrice?.suggestedPricePublish && data.suggestedPrice.suggestedPricePublish > 0) {
-        const precioRecomendado = data.suggestedPrice.suggestedPricePublish;
-        setEstadisticas(prev => ({
-          ...prev,
-          precioRecomendado: precioRecomendado,
-          precioPromedioMercado: precioRecomendado,
-          precioPromedio: precioRecomendado
-        }));
+      // Calcular promedio de precios desde similarsCars
+      if (data?.similarsCars && Array.isArray(data.similarsCars) && data.similarsCars.length > 0) {
+        const precios = data.similarsCars
+          .map((car: any) => car.price)
+          .filter((price: number) => price > 0);
+        
+        if (precios.length > 0) {
+          const promedioBase = precios.reduce((a: number, b: number) => a + b, 0) / precios.length;
+          const precioPromedioCalculado = Math.round(promedioBase / 100) * 100; // Redondeo a centenas
+          
+          console.log(`Precio promedio calculado desde ${precios.length} vehículos similares:`, precioPromedioCalculado);
+          console.log(`Precio promedio bruto (sin redondear):`, promedioBase);
+          
+          setEstadisticas(prev => ({
+            ...prev,
+            precioRecomendado: precioPromedioCalculado,
+            precioPromedioMercado: precioPromedioCalculado,
+            precioPromedio: precioPromedioCalculado,
+            precioPromedioBruto: promedioBase // Guardar valor sin redondear
+          }));
+        } else {
+          console.log('No hay precios válidos en los vehículos similares');
+          toast({
+            title: "Datos no disponibles",
+            description: "No se encontraron precios válidos en vehículos similares",
+            variant: "destructive"
+          });
+        }
       } else {
-        console.log('No market data available from API');
+        console.log('No similar cars data available from API');
         toast({
           title: "Datos no disponibles",
-          description: "MaxiPublica no tiene datos de mercado para este vehículo",
+          description: "No se encontraron vehículos similares para este modelo",
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.error('Error calling market price API:', error);
+      console.error('Error calling similar cars API:', error);
       toast({
         title: "Error de conexión",
-        description: "No se pudo conectar con el servicio de precios de MaxiPublica",
+        description: "No se pudo conectar con el servicio de vehículos similares",
         variant: "destructive"
       });
     }
@@ -235,12 +257,16 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
             const kilometrajes = autosFilterados.map(auto => auto.kilometraje).filter(k => k > 0);
 
             if (precios.length > 0) {
+              const promedioBruto = precios.reduce((a, b) => a + b, 0) / precios.length;
+              const promedioRedondeado = Math.round(promedioBruto / 100) * 100;
+              
               const estadisticasCalculadas = {
                 totalAnuncios: autosFilterados.length,
                 precioMinimo: Math.min(...precios),
                 precioMaximo: Math.max(...precios),
-                precioPromedio: precios.reduce((a, b) => a + b, 0) / precios.length,
-                precioRecomendado: estadisticas.precioRecomendado || (precios.reduce((a, b) => a + b, 0) / precios.length),
+                precioPromedio: promedioRedondeado,
+                precioPromedioBruto: promedioBruto,
+                precioRecomendado: estadisticas.precioRecomendado || promedioRedondeado,
                 precioPromedioMercado: estadisticas.precioPromedioMercado || 0
               };
 
@@ -445,13 +471,18 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
           kilometraje={kilometrajeSeleccionado}
           datos={{
             precioPromedio: estadisticas.precioPromedio,
+            precioPromedioBruto: estadisticas.precioPromedioBruto,
             rangoMinimo: estadisticas.precioMinimo,
             rangoMaximo: estadisticas.precioMaximo,
             demanda: demandaAuto.nivel.toLowerCase().includes('alta') ? 'alta' : 
                      demandaAuto.nivel.toLowerCase().includes('baja') ? 'baja' : 'moderada',
             competencia: competenciaMercado.nivel === 'alta' || competenciaMercado.nivel === 'muy alta' || competenciaMercado.nivel === 'extrema' ? 'alta' : 
                         competenciaMercado.nivel === 'baja' || competenciaMercado.nivel === 'muy baja' ? 'baja' : 'moderada',
-            vehiculosSimilares: vehiculosSimilaresMapi
+            vehiculosSimilares: vehiculosSimilaresMapi,
+            factorCompetencia: competenciaMercado.factorCompetencia,
+            coeficienteVariacion: competenciaMercado.coeficienteVariacion,
+            intensidadCompetencia: competenciaMercado.intensidad,
+            distribucionPrecios: distribucionPrecios
           }}
         />
 

@@ -106,25 +106,109 @@ export const calcularSugerenciaAjuste = (precioRecomendado: number, precioPromed
   }
 };
 
-export const calcularDistribucionPrecios = (autosSimilares: AutoSimilar[]) => {
-  if (autosSimilares.length === 0) return [];
+// Función auxiliar para calcular cuartiles y percentiles
+const calcularCuartiles = (precios: number[]) => {
+  const sorted = [...precios].sort((a, b) => a - b);
+  const n = sorted.length;
   
-  const precios = autosSimilares.map(auto => auto.precio).filter(p => p > 0);
-  if (precios.length === 0) return [];
+  const getPercentil = (p: number) => {
+    const index = Math.ceil(n * p) - 1;
+    return sorted[Math.max(0, Math.min(index, n - 1))];
+  };
   
+  return {
+    min: sorted[0],
+    Q1: getPercentil(0.25),
+    Q2: getPercentil(0.50), // Mediana
+    Q3: getPercentil(0.75),
+    P90: getPercentil(0.90),
+    max: sorted[n - 1]
+  };
+};
+
+// Distribución basada en cuartiles (para muestras >= 12)
+const calcularDistribucionPorCuartiles = (precios: number[], autosSimilares: AutoSimilar[]) => {
+  const { min, Q1, Q2, Q3, P90, max } = calcularCuartiles(precios);
+  
+  const rangos = [
+    { nombre: "Muy Bajo", inicio: min, fin: Q1 },
+    { nombre: "Bajo", inicio: Q1, fin: Q2 },
+    { nombre: "Promedio", inicio: Q2, fin: Q3 },
+    { nombre: "Alto", inicio: Q3, fin: P90 },
+    { nombre: "Muy Alto", inicio: P90, fin: max }
+  ];
+  
+  return rangos.map((rango, index) => {
+    const autosEnRango = autosSimilares.filter(auto => {
+      if (index === rangos.length - 1) {
+        // Último rango incluye el límite superior
+        return auto.precio >= rango.inicio && auto.precio <= rango.fin;
+      }
+      return auto.precio >= rango.inicio && auto.precio < rango.fin;
+    }).length;
+    
+    return {
+      inicio: rango.inicio,
+      fin: rango.fin,
+      cantidad: autosEnRango,
+      porcentaje: (autosEnRango / autosSimilares.length) * 100,
+      metodo: 'cuartiles' as const
+    };
+  });
+};
+
+// Distribución fija mejorada (para muestras < 12)
+const calcularDistribucionFijaInteligente = (precios: number[], autosSimilares: AutoSimilar[]) => {
   const precioMinimo = Math.min(...precios);
   const precioMaximo = Math.max(...precios);
   
-  // Evitar división por cero
+  // Si todos los precios son iguales
   if (precioMinimo === precioMaximo) {
     return [{
       inicio: precioMinimo,
       fin: precioMaximo,
       cantidad: precios.length,
-      porcentaje: 100
+      porcentaje: 100,
+      metodo: 'fijo' as const
     }];
   }
   
+  // Intentar usar desviación estándar si hay suficientes datos
+  if (precios.length >= 5) {
+    const promedio = precios.reduce((a, b) => a + b, 0) / precios.length;
+    const varianza = precios.reduce((acc, p) => acc + Math.pow(p - promedio, 2), 0) / precios.length;
+    const desviacion = Math.sqrt(varianza);
+    
+    // Crear rangos basados en desviaciones estándar
+    const rangos = [
+      { inicio: precioMinimo, fin: promedio - desviacion },
+      { inicio: promedio - desviacion, fin: promedio - (desviacion * 0.5) },
+      { inicio: promedio - (desviacion * 0.5), fin: promedio + (desviacion * 0.5) },
+      { inicio: promedio + (desviacion * 0.5), fin: promedio + desviacion },
+      { inicio: promedio + desviacion, fin: precioMaximo }
+    ];
+    
+    return rangos.map((rango, index) => {
+      const autosEnRango = autosSimilares.filter(auto => {
+        if (index === 0) {
+          return auto.precio >= rango.inicio && auto.precio < rango.fin;
+        } else if (index === rangos.length - 1) {
+          return auto.precio >= rango.inicio && auto.precio <= rango.fin;
+        }
+        return auto.precio >= rango.inicio && auto.precio < rango.fin;
+      }).length;
+      
+      return {
+        inicio: Math.max(precioMinimo, rango.inicio),
+        fin: Math.min(precioMaximo, rango.fin),
+        cantidad: autosEnRango,
+        porcentaje: (autosEnRango / autosSimilares.length) * 100,
+        metodo: 'desviacion' as const
+      };
+    });
+  }
+  
+  // Fallback: distribución lineal simple
   const rango = precioMaximo - precioMinimo;
   const numRangos = 5;
   const tamanoRango = rango / numRangos;
@@ -141,11 +225,29 @@ export const calcularDistribucionPrecios = (autosSimilares: AutoSimilar[]) => {
       inicio,
       fin,
       cantidad: autosEnRango,
-      porcentaje: (autosEnRango / autosSimilares.length) * 100
+      porcentaje: (autosEnRango / autosSimilares.length) * 100,
+      metodo: 'lineal' as const
     });
   }
   
   return rangos;
+};
+
+// Función principal que decide qué método usar
+export const calcularDistribucionPrecios = (autosSimilares: AutoSimilar[]) => {
+  if (autosSimilares.length === 0) return [];
+  
+  const precios = autosSimilares.map(auto => auto.precio).filter(p => p > 0);
+  if (precios.length === 0) return [];
+  
+  const MUESTRA_MINIMA_CUARTILES = 12;
+  
+  // Decidir método según tamaño de muestra
+  if (precios.length >= MUESTRA_MINIMA_CUARTILES) {
+    return calcularDistribucionPorCuartiles(precios, autosSimilares);
+  } else {
+    return calcularDistribucionFijaInteligente(precios, autosSimilares);
+  }
 };
 
 export const calcularDemandaAuto = (autosSimilares: AutoSimilar[], datos: DatosVehiculo, estadisticas: any) => {
@@ -361,12 +463,14 @@ export const calcularCompetenciaMercado = (
   
   // Análisis de dispersión de precios para entender la competencia
   let intensidadCompetencia = "normal";
+  let coeficienteVariacion = 0;
+  
   if (autosSimilares.length > 1) {
     const precios = autosSimilares.map(auto => auto.precio).filter(p => p > 0);
     if (precios.length > 1) {
       const precioPromedio = precios.reduce((a, b) => a + b, 0) / precios.length;
       const varianza = precios.reduce((acc, precio) => acc + Math.pow(precio - precioPromedio, 2), 0) / precios.length;
-      const coeficienteVariacion = Math.sqrt(varianza) / precioPromedio;
+      coeficienteVariacion = Math.sqrt(varianza) / precioPromedio;
       
       if (coeficienteVariacion > 0.4) {
         intensidadCompetencia = "agresiva"; // Precios muy dispersos = competencia agresiva
@@ -385,7 +489,9 @@ export const calcularCompetenciaMercado = (
       bgColor: "bg-emerald-50",
       borderColor: "border-emerald-200",
       cantidad: totalAnuncios,
-      intensidad: intensidadCompetencia
+      intensidad: intensidadCompetencia,
+      factorCompetencia,
+      coeficienteVariacion
     };
   } else if (factorCompetencia <= 8) {
     return {
@@ -396,7 +502,9 @@ export const calcularCompetenciaMercado = (
       bgColor: "bg-green-50",
       borderColor: "border-green-200",
       cantidad: totalAnuncios,
-      intensidad: intensidadCompetencia
+      intensidad: intensidadCompetencia,
+      factorCompetencia,
+      coeficienteVariacion
     };
   } else if (factorCompetencia <= 15) {
     return {
@@ -407,7 +515,9 @@ export const calcularCompetenciaMercado = (
       bgColor: "bg-blue-50",
       borderColor: "border-blue-200",
       cantidad: totalAnuncios,
-      intensidad: intensidadCompetencia
+      intensidad: intensidadCompetencia,
+      factorCompetencia,
+      coeficienteVariacion
     };
   } else if (factorCompetencia <= 25) {
     return {
@@ -418,7 +528,9 @@ export const calcularCompetenciaMercado = (
       bgColor: "bg-orange-50",
       borderColor: "border-orange-200",
       cantidad: totalAnuncios,
-      intensidad: intensidadCompetencia
+      intensidad: intensidadCompetencia,
+      factorCompetencia,
+      coeficienteVariacion
     };
   } else {
     return {
@@ -429,7 +541,9 @@ export const calcularCompetenciaMercado = (
       bgColor: "bg-red-50",
       borderColor: "border-red-200",
       cantidad: totalAnuncios,
-      intensidad: intensidadCompetencia
+      intensidad: intensidadCompetencia,
+      factorCompetencia,
+      coeficienteVariacion
     };
   }
 };
