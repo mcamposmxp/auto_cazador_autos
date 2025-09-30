@@ -75,16 +75,16 @@ export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraj
                 <DebugInfo
                   title="Cálculo de demanda"
                   data={{
-                    fuente: "Análisis de mercado local + Base de datos anuncios",
+                    fuente: "Edge Function 'maxi_similar_cars' + API MaxiPublica",
                     datosPredecesores: [
                       {
-                        fuente: "Base datos anuncios_vehiculos",
+                        fuente: "API MaxiPublica ads_sites",
                         valor: `${datos.vehiculosSimilares} vehículos similares encontrados`,
                         fecha: new Date().toLocaleDateString()
                       },
                       {
-                        fuente: "API MaxiPublica",
-                        valor: `Precio promedio: ${currency.format(datos.precioPromedio)}`,
+                        fuente: "Edge Function maxi_similar_cars",
+                        valor: `Filtrado por versionId específico`,
                         fecha: new Date().toLocaleDateString()
                       }
                     ],
@@ -92,11 +92,12 @@ export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraj
                       "Demanda ALTA: > 15 vehículos similares",
                       "Demanda MODERADA: 5-15 vehículos similares", 
                       "Demanda BAJA: < 5 vehículos similares",
-                      "Ajuste por rango de precios competitivos"
+                      "Ajuste por marca: Toyota, Honda, Mazda, Subaru (+1 punto)",
+                      "Ajuste por antigüedad: ≤2 años (+1), 3-5 años (0), >5 años (-1)"
                     ],
                     calculos: [{
-                      formula: "demanda = f(vehiculosSimilares, tiempoPromercado, region)",
-                      formulaConValores: `demanda = f(${datos.vehiculosSimilares}, ${new Date().getFullYear() - ano} años, "México")`,
+                      formula: "demanda = f(vehiculosSimilares, marca, antiguedad)",
+                      formulaConValores: `demanda = f(${datos.vehiculosSimilares}, "${marca}", ${new Date().getFullYear() - ano} años)`,
                       valores: {
                         vehiculosSimilares: datos.vehiculosSimilares,
                         marca: marca,
@@ -111,27 +112,26 @@ export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraj
                     }],
                     procesamiento: {
                       pasos: [
-                        "Consulta a base de datos de anuncios activos",
-                        "Filtrado por marca, modelo y año",
-                        "Cálculo de estadísticas de mercado",
-                        "Aplicación de reglas de demanda"
+                        "Edge Function obtiene versionId del vehículo",
+                        "Llamada a API MaxiPublica ads_sites con categoryId específico",
+                        "Filtrado automático por versionId (datos pre-filtrados)",
+                        "Mapeo y normalización de datos de respuesta API",
+                        "Aplicación de algoritmo de clasificación de demanda",
+                        "Ajustes por factores marca y antigüedad"
                       ],
-                      filtros: [
-                        "marca = datos.marca",
-                        "modelo = datos.modelo", 
-                        "ano = datos.ano",
-                        "activo = true"
-                      ],
+                      filtros: [],
                       transformaciones: [
-                        "Agrupación por características similares",
-                        "Cálculo de rangos de precios",
-                        "Clasificación de nivel de demanda"
+                        "Conversión de datos API MaxiPublica a formato interno",
+                        "Cálculo de nivel de demanda basado en cantidad total",
+                        "Aplicación de factores de ajuste marca/antigüedad",
+                        "Clasificación final de demanda vehicular"
                       ]
                     },
                     observaciones: [
-                      "La demanda se calcula basándose en la cantidad de vehículos similares en el mercado",
-                      "Se consideran factores regionales y temporales",
-                      "Datos actualizados en tiempo real desde múltiples fuentes"
+                      "Los datos provienen directamente de API MaxiPublica mediante Edge Function",
+                      "El versionId garantiza precisión en vehículos similares",
+                      "Se aplican factores de mercado mexicano (marcas populares)",
+                      "El algoritmo considera tanto cantidad como calidad de demanda"
                     ]
                   }}
                 />

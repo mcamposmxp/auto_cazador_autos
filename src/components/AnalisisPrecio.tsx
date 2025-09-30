@@ -161,7 +161,7 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
   const cargarAnalisis = useCallback(async () => {
     setCargando(true);
     try {
-      // Obtener cantidad de vehículos similares desde maxi_similar_cars
+      // Obtener datos completos desde maxi_similar_cars
       const versionId = datos.versionId;
       
       console.log('Llamando a maxi_similar_cars con versionId:', versionId);
@@ -174,72 +174,119 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
         
         console.log('Respuesta de maxi_similar_cars:', { maxiData, maxiError });
         
-        if (!maxiError && maxiData?.similarsCars) {
+        if (!maxiError && maxiData?.similarsCars && maxiData.similarsCars.length > 0) {
           console.log('Cantidad de vehículos similares encontrados:', maxiData.similarsCars.length);
           setVehiculosSimilaresMapi(maxiData.similarsCars.length);
+          
+          // Mapear datos de maxi_similar_cars al formato esperado
+          const autosMapeados = maxiData.similarsCars.map((vehiculo: any) => ({
+            id: vehiculo.id,
+            marca: vehiculo.brand,
+            ano: parseInt(vehiculo.year),
+            modelo: vehiculo.model,
+            version: vehiculo.trim,
+            kilometraje: vehiculo.odometer,
+            // Campos adicionales para otros cálculos y análisis
+            precio: vehiculo.price,
+            condition: vehiculo.condition,
+            traction: vehiculo.traction,
+            energy: vehiculo.energy,
+            transmission: vehiculo.transmission,
+            bodyType: vehiculo.bodyType,
+            armored: vehiculo.armored,
+            currency: vehiculo.currency,
+            status: vehiculo.status,
+            permalink: vehiculo.permalink,
+            thumbnail: vehiculo.thumbnail,
+            dateCreated: vehiculo.dateCreated,
+            daysInStock: vehiculo.daysInStock,
+            sellerType: vehiculo.sellerType,
+            address_line: vehiculo.address_line,
+            zip_code: vehiculo.zip_code,
+            subneighborhood: vehiculo.subneighborhood,
+            neighborhood: vehiculo.neighborhood,
+            city: vehiculo.city,
+            state: vehiculo.state,
+            country: vehiculo.country,
+            latitude: vehiculo.latitude,
+            longitude: vehiculo.longitude,
+            // Campos compatibles con la interfaz anterior
+            titulo: `${vehiculo.brand} ${vehiculo.model} ${vehiculo.year}`,
+            ubicacion: `${vehiculo.city || ''}, ${vehiculo.state || ''}`.replace(/^, /, ''),
+            sitio_web: vehiculo.siteId || 'mercadolibre',
+            url_anuncio: vehiculo.permalink || ''
+          }));
+
+          // Aplicar filtros adicionales por estado si están seleccionados
+          let autosFilterados = autosMapeados;
+          if (estadoSeleccionado !== "todos") {
+            autosFilterados = autosMapeados.filter(auto => 
+              auto.state?.toLowerCase().includes(estadoSeleccionado.toLowerCase()) ||
+              auto.city?.toLowerCase().includes(estadoSeleccionado.toLowerCase()) ||
+              auto.ubicacion?.toLowerCase().includes(estadoSeleccionado.toLowerCase())
+            );
+          }
+
+          setAutosSimilares(autosFilterados);
+
+          // Calcular estadísticas usando datos de maxi_similar_cars
+          if (autosFilterados.length > 0) {
+            const precios = autosFilterados.map(auto => auto.precio).filter(p => p > 0);
+            const kilometrajes = autosFilterados.map(auto => auto.kilometraje).filter(k => k > 0);
+
+            if (precios.length > 0) {
+              const estadisticasCalculadas = {
+                totalAnuncios: autosFilterados.length,
+                precioMinimo: Math.min(...precios),
+                precioMaximo: Math.max(...precios),
+                precioPromedio: precios.reduce((a, b) => a + b, 0) / precios.length,
+                precioRecomendado: estadisticas.precioRecomendado || (precios.reduce((a, b) => a + b, 0) / precios.length),
+                precioPromedioMercado: estadisticas.precioPromedioMercado || 0
+              };
+
+              setEstadisticas(prev => ({
+                ...prev,
+                ...estadisticasCalculadas
+              }));
+
+              // Calcular estadísticas de kilometraje
+              if (kilometrajes.length > 0) {
+                const promedioKm = kilometrajes.reduce((a, b) => a + b, 0) / kilometrajes.length;
+                const minimoKm = Math.min(...kilometrajes);
+                const maximoKm = Math.max(...kilometrajes);
+                
+                setEstadisticasKilometraje({
+                  promedio: promedioKm,
+                  minimo: minimoKm,
+                  maximo: maximoKm,
+                  rangoOptimo: {
+                    min: Math.max(0, promedioKm - (promedioKm * 0.2)), // 20% menos del promedio
+                    max: promedioKm + (promedioKm * 0.2) // 20% más del promedio
+                  }
+                });
+              }
+            }
+          } else {
+            console.log('No se encontraron vehículos tras aplicar filtros');
+            setAutosSimilares([]);
+            setEstadisticas(prev => ({
+              ...prev,
+              totalAnuncios: 0,
+              precioMinimo: 0,
+              precioMaximo: 0,
+              precioPromedio: 0
+            }));
+          }
         } else {
           console.warn('No se encontraron datos válidos en maxi_similar_cars:', { maxiError, maxiData });
           setVehiculosSimilaresMapi(0);
+          setAutosSimilares([]);
         }
       } catch (maxiErr) {
         console.error('Error al obtener datos de maxi_similar_cars:', maxiErr);
         setVehiculosSimilaresMapi(0);
-      }
-
-      // Construir consulta con filtros
-      let query = supabase
-        .from('anuncios_vehiculos')
-        .select('*')
-        .eq('marca', datos.marca)
-        .eq('modelo', datos.modelo)
-        .eq('ano', datos.ano)
-        .eq('activo', true);
-
-      // Aplicar filtros adicionales si están seleccionados
-      if (estadoSeleccionado !== "todos") {
-        query = query.ilike('ubicacion', `%${estadoSeleccionado}%`);
-      }
-
-      const { data, error } = await query
-        .order('precio', { ascending: true })
-        .limit(20);
-
-      if (error) {
-        throw error;
-      }
-
-      const autosMapeados = data?.map(vehiculo => ({
-        id: vehiculo.id,
-        titulo: vehiculo.titulo || '',
-        precio: vehiculo.precio || 0,
-        kilometraje: vehiculo.kilometraje || 0,
-        ano: vehiculo.ano || 0,
-        ubicacion: vehiculo.ubicacion || '',
-        sitio_web: vehiculo.sitio_web || '',
-        url_anuncio: vehiculo.url_anuncio || ''
-      })) || [];
-
-      setAutosSimilares(autosMapeados);
-
-      // Calcular estadísticas
-      if (autosMapeados.length > 0) {
-        const precios = autosMapeados.map(auto => auto.precio).filter(p => p > 0);
-
-        if (precios.length > 0) {
-          const estadisticasCalculadas = {
-            totalAnuncios: autosMapeados.length,
-            precioMinimo: Math.min(...precios),
-            precioMaximo: Math.max(...precios),
-            precioPromedio: precios.reduce((a, b) => a + b, 0) / precios.length,
-            precioRecomendado: estadisticas.precioRecomendado || (precios.reduce((a, b) => a + b, 0) / precios.length),
-            precioPromedioMercado: estadisticas.precioPromedioMercado || 0
-          };
-
-          setEstadisticas(prev => ({
-            ...prev,
-            ...estadisticasCalculadas
-          }));
-        }
+        setAutosSimilares([]);
+        throw maxiErr;
       }
     } catch (error) {
       console.error('Error al cargar análisis:', error);
