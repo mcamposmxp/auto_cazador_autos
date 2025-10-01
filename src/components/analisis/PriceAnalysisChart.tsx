@@ -2,6 +2,7 @@ import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BarChart3, TrendingUp, TrendingDown, DollarSign } from "@/utils/iconImports";
 
 interface PriceAnalysisChartProps {
@@ -124,21 +125,38 @@ export const PriceAnalysisChart = memo(function PriceAnalysisChart({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {distribucionPrecios.map((rango, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>
-                      {formatearPrecio(rango.inicio)} - {formatearPrecio(rango.fin)}
-                    </span>
-                    <span className="font-semibold">
-                      {rango.cantidad} autos ({Math.round(rango.porcentaje)}%)
-                    </span>
-                  </div>
-                  <Progress value={rango.porcentaje} className="h-2" />
-                </div>
-              ))}
-            </div>
+            <TooltipProvider>
+              <div className="space-y-3">
+                {distribucionPrecios.map((rango, index) => (
+                  <Tooltip key={index}>
+                    <TooltipTrigger asChild>
+                      <div className="space-y-2 cursor-help">
+                        <div className="flex justify-between text-sm">
+                          <span>
+                            {formatearPrecio(rango.inicio)} - {formatearPrecio(rango.fin)}
+                          </span>
+                          <span className="font-semibold">
+                            {rango.cantidad} autos ({Math.round(rango.porcentaje)}%)
+                          </span>
+                        </div>
+                        <Progress value={rango.porcentaje} className="h-2" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <div className="space-y-1">
+                        <p className="font-semibold">Rango de precios:</p>
+                        <p>{formatearPrecio(rango.inicio)} - {formatearPrecio(rango.fin)}</p>
+                        <p className="font-semibold mt-2">Cantidad de elementos:</p>
+                        <p>{rango.cantidad} autos en este rango</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Representa el {Math.round(rango.porcentaje)}% del mercado
+                        </p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            </TooltipProvider>
           </CardContent>
         </Card>
       )}

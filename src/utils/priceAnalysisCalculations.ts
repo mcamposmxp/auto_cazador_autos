@@ -22,9 +22,15 @@ export interface DatosVehiculo {
   ciudad: string;
 }
 
+// Interfaz ligera para cálculo de kilometraje (solo requiere kilometraje y año)
+export interface AutoKilometraje {
+  kilometraje: number;
+  ano: number;
+}
+
 export const calcularFactorKilometraje = (
   kilometrajeSeleccionado: number, 
-  autosSimilares: AutoSimilar[], 
+  autosSimilares: AutoKilometraje[], 
   datos: DatosVehiculo
 ) => {
   if (autosSimilares.length === 0 || kilometrajeSeleccionado === 0) return 1;
@@ -106,6 +112,29 @@ export const calcularSugerenciaAjuste = (precioRecomendado: number, precioPromed
   }
 };
 
+// Función auxiliar para calcular la moda (precio que más se repite)
+const calcularModa = (precios: number[]): number | null => {
+  if (precios.length === 0) return null;
+  
+  const frecuencias = new Map<number, number>();
+  precios.forEach(precio => {
+    frecuencias.set(precio, (frecuencias.get(precio) || 0) + 1);
+  });
+  
+  let maxFrecuencia = 0;
+  let moda = precios[0];
+  
+  frecuencias.forEach((frecuencia, precio) => {
+    if (frecuencia > maxFrecuencia) {
+      maxFrecuencia = frecuencia;
+      moda = precio;
+    }
+  });
+  
+  // Solo retornar moda si se repite al menos 2 veces
+  return maxFrecuencia > 1 ? moda : null;
+};
+
 // Función auxiliar para calcular cuartiles y percentiles
 const calcularCuartiles = (precios: number[]) => {
   const sorted = [...precios].sort((a, b) => a - b);
@@ -117,18 +146,19 @@ const calcularCuartiles = (precios: number[]) => {
   };
   
   return {
-    min: sorted[0],
+    Q0: sorted[0], // Mínimo
     Q1: getPercentil(0.25),
     Q2: getPercentil(0.50), // Mediana
     Q3: getPercentil(0.75),
-    P90: getPercentil(0.90),
-    max: sorted[n - 1]
+    Q4: sorted[n - 1], // Máximo
+    P90: getPercentil(0.90)
   };
 };
 
 // Distribución basada en cuartiles (para muestras >= 12)
 const calcularDistribucionPorCuartiles = (precios: number[], autosSimilares: AutoSimilar[]) => {
-  const { min, Q1, Q2, Q3, P90, max } = calcularCuartiles(precios);
+  const cuartiles = calcularCuartiles(precios);
+  const { Q0: min, Q1, Q2, Q3, Q4: max, P90 } = cuartiles;
   
   const rangos = [
     { nombre: "Muy Bajo", inicio: min, fin: Q1 },
@@ -235,18 +265,35 @@ const calcularDistribucionFijaInteligente = (precios: number[], autosSimilares: 
 
 // Función principal que decide qué método usar
 export const calcularDistribucionPrecios = (autosSimilares: AutoSimilar[]) => {
-  if (autosSimilares.length === 0) return [];
+  if (autosSimilares.length === 0) return { distribucion: [], cuartiles: null, moda: null };
   
   const precios = autosSimilares.map(auto => auto.precio).filter(p => p > 0);
-  if (precios.length === 0) return [];
+  if (precios.length === 0) return { distribucion: [], cuartiles: null, moda: null };
   
   const MUESTRA_MINIMA_CUARTILES = 12;
+  const moda = calcularModa(precios);
   
   // Decidir método según tamaño de muestra
   if (precios.length >= MUESTRA_MINIMA_CUARTILES) {
-    return calcularDistribucionPorCuartiles(precios, autosSimilares);
+    const cuartiles = calcularCuartiles(precios);
+    const distribucion = calcularDistribucionPorCuartiles(precios, autosSimilares);
+    return { 
+      distribucion, 
+      cuartiles: {
+        Q0: cuartiles.Q0,
+        Q1: cuartiles.Q1,
+        Q2: cuartiles.Q2,
+        Q3: cuartiles.Q3,
+        Q4: cuartiles.Q4
+      },
+      moda
+    };
   } else {
-    return calcularDistribucionFijaInteligente(precios, autosSimilares);
+    return { 
+      distribucion: calcularDistribucionFijaInteligente(precios, autosSimilares), 
+      cuartiles: null,
+      moda
+    };
   }
 };
 

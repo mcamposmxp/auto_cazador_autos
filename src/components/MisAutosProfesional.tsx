@@ -51,12 +51,29 @@ interface DatosMercado {
     porcentaje: number;
     metodo?: 'cuartiles' | 'desviacion' | 'lineal' | 'fijo';
   }>;
+    cuartilesPrecios?: {
+      Q0: number;
+      Q1: number;
+      Q2: number;
+      Q3: number;
+      Q4: number;
+    };
+    modaPrecios?: number | null;
 }
 
 export default function MisAutosProfesional() {
   const [autosEnVenta, setAutosEnVenta] = useState<AutoProfesional[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAuto, setSelectedAuto] = useState<AutoProfesional | null>(null);
+  
+  // Calcular kilometraje esperado basado en edad del vehículo (15,000 km/año)
+  const calcularKmEsperado = (anoVehiculo: number) => {
+    const añoActual = new Date().getFullYear();
+    const edadVehiculo = añoActual - anoVehiculo;
+    return edadVehiculo * 15000;
+  };
+  
+  const [selectedKm, setSelectedKm] = useState<number>(0);
   const [profesionalId, setProfesionalId] = useState<string | null>(null);
   const [configAutoajusteGeneralOpen, setConfigAutoajusteGeneralOpen] = useState(false);
   const [configAutoajusteEspecificoOpen, setConfigAutoajusteEspecificoOpen] = useState(false);
@@ -139,6 +156,16 @@ export default function MisAutosProfesional() {
         { inicio: rangoMinimo + (rangoMaximo - rangoMinimo) * 0.8, fin: rangoMaximo, cantidad: 1, porcentaje: 5, metodo: 'lineal' as const }
       ]
     };
+  };
+
+  // Simular autos similares para el análisis de kilometraje
+  const simularAutosSimilares = (auto: AutoProfesional) => {
+    const numAutos = 10;
+    return Array.from({ length: numAutos }, (_, i) => ({
+      kilometraje: auto.kilometraje + (Math.random() - 0.5) * 40000,
+      ano: auto.ano + Math.floor((Math.random() - 0.5) * 2),
+      precio: 200000 + Math.random() * 100000
+    }));
   };
 
   useEffect(() => {
@@ -537,6 +564,11 @@ export default function MisAutosProfesional() {
                               const hasAccess = await checkWeeklyMarketAccess(auto.id);
                               if (hasAccess) {
                                 setSelectedAuto(auto);
+                                // Inicializar kilometraje: usar el del auto o el esperado según edad
+                                const kmInicial = auto.kilometraje > 0 
+                                  ? auto.kilometraje 
+                                  : calcularKmEsperado(auto.ano);
+                                setSelectedKm(kmInicial);
                                 setMarketAccessStatus({ ...marketAccessStatus, [auto.id]: true });
                               }
                             }}
@@ -560,7 +592,9 @@ export default function MisAutosProfesional() {
                               modelo={selectedAuto.modelo}
                               ano={selectedAuto.ano}
                               precio={selectedAuto.precio_venta || simularDatosMercado(selectedAuto).precioPromedio}
-                              kilometraje={selectedAuto.kilometraje}
+                              kilometraje={selectedKm || selectedAuto.kilometraje}
+                              onKilometrajeChange={setSelectedKm}
+                              autosSimilares={simularAutosSimilares(selectedAuto)}
                               datos={simularDatosMercado(selectedAuto)}
                             />
                           )}

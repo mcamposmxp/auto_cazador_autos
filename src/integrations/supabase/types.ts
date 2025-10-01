@@ -697,6 +697,60 @@ export type Database = {
           },
         ]
       }
+      error_logs: {
+        Row: {
+          category: string
+          context: Json | null
+          created_at: string
+          endpoint: string | null
+          error_code: string | null
+          id: string
+          message: string
+          request_data: Json | null
+          severity: string
+          stack_trace: string | null
+          status_code: number | null
+          timestamp: string
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          context?: Json | null
+          created_at?: string
+          endpoint?: string | null
+          error_code?: string | null
+          id?: string
+          message: string
+          request_data?: Json | null
+          severity: string
+          stack_trace?: string | null
+          status_code?: number | null
+          timestamp?: string
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          context?: Json | null
+          created_at?: string
+          endpoint?: string | null
+          error_code?: string | null
+          id?: string
+          message?: string
+          request_data?: Json | null
+          severity?: string
+          stack_trace?: string | null
+          status_code?: number | null
+          timestamp?: string
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       estadisticas_extraccion: {
         Row: {
           created_at: string
@@ -2142,6 +2196,72 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_calculation_cache: {
+        Row: {
+          ano: number
+          competencia_nivel: string | null
+          created_at: string | null
+          demanda_nivel: string | null
+          distribucion_precios: Json | null
+          estadisticas_completas: Json | null
+          fetch_count: number | null
+          id: string
+          kilometraje_promedio: number | null
+          last_successful_fetch: string | null
+          marca: string
+          modelo: string
+          precio_maximo: number | null
+          precio_minimo: number | null
+          precio_promedio: number
+          total_anuncios: number | null
+          updated_at: string | null
+          version: string
+          version_id: string
+        }
+        Insert: {
+          ano: number
+          competencia_nivel?: string | null
+          created_at?: string | null
+          demanda_nivel?: string | null
+          distribucion_precios?: Json | null
+          estadisticas_completas?: Json | null
+          fetch_count?: number | null
+          id?: string
+          kilometraje_promedio?: number | null
+          last_successful_fetch?: string | null
+          marca: string
+          modelo: string
+          precio_maximo?: number | null
+          precio_minimo?: number | null
+          precio_promedio: number
+          total_anuncios?: number | null
+          updated_at?: string | null
+          version: string
+          version_id: string
+        }
+        Update: {
+          ano?: number
+          competencia_nivel?: string | null
+          created_at?: string | null
+          demanda_nivel?: string | null
+          distribucion_precios?: Json | null
+          estadisticas_completas?: Json | null
+          fetch_count?: number | null
+          id?: string
+          kilometraje_promedio?: number | null
+          last_successful_fetch?: string | null
+          marca?: string
+          modelo?: string
+          precio_maximo?: number | null
+          precio_minimo?: number | null
+          precio_promedio?: number
+          total_anuncios?: number | null
+          updated_at?: string | null
+          version?: string
+          version_id?: string
+        }
+        Relationships: []
+      }
       vehicle_market_cache: {
         Row: {
           created_at: string | null
@@ -2287,6 +2407,10 @@ export type Database = {
         Returns: undefined
       }
       cleanup_expired_vehicle_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_old_error_logs: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

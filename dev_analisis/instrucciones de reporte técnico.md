@@ -95,6 +95,73 @@ dev_analisis/RT_[FUNCIONALIDAD].md
 changelogs/YYYYMMDD_HHMMSS_[descripcion_cambio].md
 ```
 
+**⚠️ CRÍTICO: Zona Horaria para Timestamps - OBLIGATORIO**
+
+**REGLA ABSOLUTA: TODOS los timestamps deben estar CONVERTIDOS a la zona horaria de Ciudad de México (America/Mexico_City)**
+
+### Alcance Obligatorio:
+- ✅ Nombres de archivos de changelog
+- ✅ Contenido de archivos de changelog (campo Fecha)
+- ✅ Logs del sistema
+- ✅ Registros en base de datos con timestamp
+- ✅ Bitácoras de errores
+- ✅ Cualquier otro registro temporal en el sistema
+
+### Formato Obligatorio:
+```
+YYYYMMDD_HHMMSS (hora convertida a America/Mexico_City)
+```
+
+### ⚠️ ERROR COMÚN A EVITAR:
+❌ **INCORRECTO**: Usar UTC y solo agregar la etiqueta `(America/Mexico_City)`
+```
+**Fecha:** 2025-09-30 23:15:00 (America/Mexico_City)  // ❌ Esta es hora UTC!
+```
+
+✅ **CORRECTO**: Convertir REALMENTE el timestamp a hora de Ciudad de México
+```
+**Fecha:** 2025-09-30 18:15:00 (America/Mexico_City)  // ✅ Convertido correctamente!
+```
+
+### Herramientas para Conversión:
+1. **date-fns-tz** (recomendado):
+```typescript
+import { formatInTimeZone } from 'date-fns-tz';
+
+const mexicoTime = formatInTimeZone(
+  new Date(),
+  'America/Mexico_City',
+  'yyyy-MM-dd HH:mm:ss'
+);
+```
+
+2. **JavaScript nativo**:
+```typescript
+const mexicoTime = new Date().toLocaleString('es-MX', { 
+  timeZone: 'America/Mexico_City',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false
+});
+```
+
+### Ejemplo de Nombre de Archivo con Timestamp Correcto:
+Si la hora actual en Ciudad de México es: `2025-09-30 18:15:00`
+- Nombre archivo: `changelogs/20250930_181500_descripcion_cambio.md`
+- Contenido: `**Fecha:** 2025-09-30 18:15:00 (America/Mexico_City)`
+
+### Verificación:
+Antes de generar cualquier archivo o log, SIEMPRE verifica:
+1. ¿Convertiste el timestamp a America/Mexico_City?
+2. ¿El nombre del archivo usa la hora convertida?
+3. ¿El contenido del archivo usa la hora convertida?
+
+**NO es suficiente agregar la etiqueta `(America/Mexico_City)` - DEBES hacer la conversión real del timestamp.**
+
 ### Ejemplos:
 - `dev_analisis/REPORTE_TECNICO_CALCULO_DEMANDA_VEHICULAR.md`
 - `dev_analisis/REPORTE_TECNICO_SISTEMA_VALUACION.md`

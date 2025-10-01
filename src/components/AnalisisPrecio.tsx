@@ -7,6 +7,7 @@ import { ArrowLeft } from "@/utils/iconImports";
 import { useToast } from "@/hooks/use-toast";
 import { useTiempoVentaIA } from "@/hooks/useTiempoVentaIA";
 import { useCreditControl } from "@/hooks/useCreditControl";
+import { useErrorHandling } from "@/hooks/useErrorHandling";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { VehicleDataForm } from "@/components/analisis/VehicleDataForm";
 import { ComparisonTable } from "@/components/analisis/ComparisonTable";
@@ -14,6 +15,7 @@ import { RecommendationPanel } from "@/components/analisis/RecommendationPanel";
 import AnalisisMercado from "@/components/AnalisisMercado";
 import CreditControl from "./CreditControl";
 import { NoCreditsDialog } from "./NoCreditsDialog";
+import { ErrorBlock } from "./ErrorBlock";
 import { formatPrice } from "@/utils/formatters";
 import { 
   calcularDemandaAuto,
@@ -21,6 +23,7 @@ import {
   calcularDistribucionPrecios,
   calcularSugerenciaAjuste,
   calcularTiempoVenta,
+  calcularFactorKilometraje,
   type AutoSimilar,
   type DatosVehiculo
 } from "@/utils/priceAnalysisCalculations";
@@ -50,7 +53,20 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
   const [precioSeleccionado, setPrecioSeleccionado] = useState(0);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState<string>("todos");
   const [tipoVendedorSeleccionado, setTipoVendedorSeleccionado] = useState<string>("todos");
-  const [kilometrajeSeleccionado, setKilometrajeSeleccionado] = useState(0);
+  
+  // Calcular kilometraje esperado basado en edad del vehículo (15,000 km/año)
+  const kilometrajeEsperado = useMemo(() => {
+    const añoActual = new Date().getFullYear();
+    const edadVehiculo = añoActual - datos.ano;
+    return edadVehiculo * 15000;
+  }, [datos.ano]);
+  
+  // Inicializar con el kilometraje esperado (punto medio del slider donde factor = 0%)
+  const [kilometrajeSeleccionado, setKilometrajeSeleccionado] = useState(() => {
+    const añoActual = new Date().getFullYear();
+    const edadVehiculo = añoActual - datos.ano;
+    return edadVehiculo * 15000;
+  });
   const [estadisticasKilometraje, setEstadisticasKilometraje] = useState({
     promedio: 0,
     minimo: 0,
@@ -62,30 +78,30 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
   const { resultado: tiempoIA, isLoading: cargandoIA, calcularTiempo } = useTiempoVentaIA();
   const { checkCredits, showUpgradeDialog, setShowUpgradeDialog } = useCreditControl();
   const { debugMode } = useDebugMode();
+  const { error: apiError, handleError, handleAPIError, handleNetworkError, clearError } = useErrorHandling();
 
   // Memoizar cálculos para evitar recálculos innecesarios
   const demandaAuto = useMemo(() => calcularDemandaAuto(autosSimilares, datos, estadisticas), [autosSimilares, datos, estadisticas]);
   const competenciaMercado = useMemo(() => calcularCompetenciaMercado(autosSimilares, estadoSeleccionado, tipoVendedorSeleccionado), [autosSimilares, estadoSeleccionado, tipoVendedorSeleccionado]);
   const sugerencia = useMemo(() => calcularSugerenciaAjuste(precioSeleccionado, estadisticas.precioPromedio), [precioSeleccionado, estadisticas.precioPromedio]);
-  const distribucionPrecios = useMemo(() => calcularDistribucionPrecios(autosSimilares), [autosSimilares]);
+  const { distribucion: distribucionPrecios, cuartiles: cuartilesPrecios, moda: modaPrecios } = useMemo(() => calcularDistribucionPrecios(autosSimilares), [autosSimilares]);
 
-  // Cálculo del ajuste por kilometraje en memoria
+  // Cálculo del ajuste por kilometraje usando la función oficial
+  const factorKilometraje = useMemo(() => {
+    return calcularFactorKilometraje(kilometrajeSeleccionado, autosSimilares, datos);
+  }, [kilometrajeSeleccionado, autosSimilares, datos]);
+
   const { precioAjustado, porcentajeAjuste } = useMemo(() => {
-    if (!estadisticasKilometraje.promedio || estadisticasKilometraje.promedio === 0) {
-      return { precioAjustado: estadisticas.precioRecomendado, porcentajeAjuste: 0 };
-    }
-
-    const diferenciaKm = kilometrajeSeleccionado - estadisticasKilometraje.promedio;
-    // Por cada 10,000 km de diferencia, ajustar ±3%
-    const ajustePorKm = (diferenciaKm / 10000) * 3;
     const precioBase = estadisticas.precioRecomendado;
-    const precioConAjuste = precioBase * (1 - ajustePorKm / 100);
+    const precioConAjuste = precioBase * factorKilometraje;
+    const porcentaje = ((factorKilometraje - 1) * 100);
     
     return { 
-      precioAjustado: Math.max(precioConAjuste, precioBase * 0.7), // Mínimo 70% del precio base
-      porcentajeAjuste: -ajustePorKm 
+      precioAjustado: precioConAjuste,
+      porcentajeAjuste: porcentaje,
+      factorKilometraje
     };
-  }, [kilometrajeSeleccionado, estadisticasKilometraje, estadisticas.precioRecomendado]);
+  }, [estadisticas.precioRecomendado, factorKilometraje]);
 
   useEffect(() => {
     // Cargar precio de MaxiPublica primero como fuente principal
@@ -96,10 +112,14 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
   const cargarPrecioMercado = async () => {
     if (!datos.versionId) {
       console.log('No version ID available, cannot get recommended price');
-      toast({
+      handleError({
         title: "Precio no disponible",
-        description: "No se pudo obtener el precio recomendado sin el ID de versión del vehículo",
-        variant: "destructive"
+        message: "No se pudo obtener el precio recomendado sin el ID de versión del vehículo",
+        category: "frontend",
+        severity: "medium",
+        endpoint: "maxi_similar_cars",
+        requestData: { versionId: datos.versionId },
+        suggestion: "Verifica que el vehículo tenga un ID de versión válido en el catálogo"
       });
       return;
     }
@@ -112,10 +132,13 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
 
       if (error) {
         console.error('Error getting similar cars data:', error);
-        toast({
-          title: "Error en precio",
-          description: "No se pudo obtener el precio promedio de vehículos similares",
-          variant: "destructive"
+        handleAPIError({
+          endpoint: "maxi_similar_cars",
+          message: "No se pudo obtener el precio promedio de vehículos similares desde la API",
+          statusCode: error.status,
+          requestData: { versionId: datos.versionId },
+          stackTrace: error.stack || error.message,
+          suggestion: "Verifica que el servicio MaxiPublica esté disponible o intenta nuevamente en unos momentos"
         });
         return;
       }
@@ -142,26 +165,33 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
           }));
         } else {
           console.log('No hay precios válidos en los vehículos similares');
-          toast({
+          handleError({
             title: "Datos no disponibles",
-            description: "No se encontraron precios válidos en vehículos similares",
-            variant: "destructive"
+            message: "No se encontraron precios válidos en vehículos similares",
+            category: "api",
+            severity: "medium",
+            endpoint: "maxi_similar_cars",
+            requestData: { versionId: datos.versionId },
+            suggestion: "El vehículo podría no tener suficientes comparables en el mercado"
           });
         }
       } else {
         console.log('No similar cars data available from API');
-        toast({
+        handleError({
           title: "Datos no disponibles",
-          description: "No se encontraron vehículos similares para este modelo",
-          variant: "destructive"
+          message: "No se encontraron vehículos similares para este modelo",
+          category: "api",
+          severity: "medium",
+          endpoint: "maxi_similar_cars",
+          requestData: { versionId: datos.versionId },
+          suggestion: "Este modelo podría no estar disponible en la base de datos de vehículos similares"
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error calling similar cars API:', error);
-      toast({
-        title: "Error de conexión",
-        description: "No se pudo conectar con el servicio de vehículos similares",
-        variant: "destructive"
+      handleNetworkError({
+        endpoint: "maxi_similar_cars",
+        message: "No se pudo conectar con el servicio de vehículos similares. Verifica tu conexión a internet."
       });
     }
   };
@@ -177,8 +207,11 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
   useEffect(() => {
     if (datos.kilometraje > 0) {
       setKilometrajeSeleccionado(datos.kilometraje);
+    } else {
+      // Si no hay kilometraje del usuario, usar el esperado según edad del vehículo
+      setKilometrajeSeleccionado(kilometrajeEsperado);
     }
-  }, [datos.kilometraje]);
+  }, [datos.kilometraje, kilometrajeEsperado]);
 
   const cargarAnalisis = useCallback(async () => {
     setCargando(true);
@@ -308,23 +341,32 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
           setVehiculosSimilaresMapi(0);
           setAutosSimilares([]);
         }
-      } catch (maxiErr) {
+      } catch (maxiErr: any) {
         console.error('Error al obtener datos de maxi_similar_cars:', maxiErr);
         setVehiculosSimilaresMapi(0);
         setAutosSimilares([]);
-        throw maxiErr;
+        handleAPIError({
+          endpoint: "maxi_similar_cars",
+          message: "No se pudieron obtener los datos de vehículos similares",
+          requestData: { versionId },
+          stackTrace: maxiErr.stack || maxiErr.message,
+          suggestion: "Verifica que el servicio esté disponible o contacta a soporte técnico"
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar análisis:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo cargar el análisis de precios",
-        variant: "destructive"
+      handleError({
+        title: "Error al cargar análisis",
+        message: "No se pudo cargar el análisis de precios del vehículo",
+        category: "frontend",
+        severity: "high",
+        stackTrace: error.stack || error.message,
+        suggestion: "Intenta recargar la página o contacta a soporte si el problema persiste"
       });
     } finally {
       setCargando(false);
     }
-  }, [datos, estadoSeleccionado, tipoVendedorSeleccionado, toast]);
+  }, [datos, estadoSeleccionado, tipoVendedorSeleccionado, handleAPIError, handleError]);
 
   const manejarCalculoTiempoIA = async () => {
     const hasCredits = await checkCredits();
@@ -375,6 +417,22 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
             <CreditControl />
           </div>
         </div>
+
+        {/* Error Block - Mostrar si hay error */}
+        {apiError && (
+          <ErrorBlock
+            title={apiError.title}
+            message={apiError.message}
+            errorCode={apiError.errorCode}
+            errorDetails={apiError.errorDetails}
+            onRetry={() => {
+              clearError();
+              cargarPrecioMercado();
+              cargarAnalisis();
+            }}
+            onDismiss={clearError}
+          />
+        )}
 
         {/* Vehicle Info */}
         <Card>
@@ -469,6 +527,8 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
           ano={datos.ano}
           precio={precioSeleccionado}
           kilometraje={kilometrajeSeleccionado}
+          onKilometrajeChange={setKilometrajeSeleccionado}
+          autosSimilares={autosSimilares}
           datos={{
             precioPromedio: estadisticas.precioPromedio,
             precioPromedioBruto: estadisticas.precioPromedioBruto,
@@ -482,7 +542,9 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
             factorCompetencia: competenciaMercado.factorCompetencia,
             coeficienteVariacion: competenciaMercado.coeficienteVariacion,
             intensidadCompetencia: competenciaMercado.intensidad,
-            distribucionPrecios: distribucionPrecios
+            distribucionPrecios: distribucionPrecios,
+            cuartilesPrecios: cuartilesPrecios || undefined,
+            modaPrecios: modaPrecios
           }}
         />
 

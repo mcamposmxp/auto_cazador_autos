@@ -1,6 +1,6 @@
 # Mejora: Popup Debug - Comparación de Valores Brutos y Redondeados
 
-**Fecha**: 2025-09-30 13:30:00
+**Fecha**: 2025-09-30 13:30:00 America/Mexico_City
 **Tipo**: Mejora de Debugging
 **Componentes Afectados**: `AnalisisPrecio.tsx`, `AnalisisMercado.tsx`
 

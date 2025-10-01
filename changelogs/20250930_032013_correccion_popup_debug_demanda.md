@@ -1,7 +1,7 @@
 # Changelog Técnico
 
 **Usuario que solicitó el cambio:** Usuario  
-**Fecha y hora del cambio:** 2025-09-30 00:00:00  
+**Fecha y hora del cambio:** 2025-09-30 03:20:13 America/Mexico_City  
 **Título del cambio:** Corrección de instrucciones en popup Debug Cálculo de demanda  
 **Instrucciones solicitadas:**  
 "En la ventana popup de nombre 'Debug: Cálculo de demanda' corregir las instrucciones incorrectas: 1. En lugar de consultar la base de datos, consulta la función que obtiene los datos de una API, 2. Ya no debe ser un filtrado por 'Filtrado por marca, modelo y año' ya que al consultar los datos desde la API, se obtienen los datos ya filtrados a partir del parámetro versionId. Eliminar el bloque de 'Filtros' ya que estos datos ya vienen filtrados y clasificados desde la función que extrae los datos de la API."

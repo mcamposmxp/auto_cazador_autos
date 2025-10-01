@@ -5,6 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { TrendingUp, TrendingDown, BarChart3, Target } from "lucide-react";
 import { useDebugMode } from "@/hooks/useDebugMode";
 import { DebugInfo } from "./DebugInfo";
+import { calcularFactorKilometraje } from "@/utils/priceAnalysisCalculations";
 
 interface DatosMercado {
   precioPromedio: number;
@@ -24,6 +25,14 @@ interface DatosMercado {
     porcentaje: number;
     metodo?: 'cuartiles' | 'desviacion' | 'lineal' | 'fijo';
   }>;
+  cuartilesPrecios?: {
+    Q0: number;
+    Q1: number;
+    Q2: number;
+    Q3: number;
+    Q4: number;
+  };
+  modaPrecios?: number | null;
 }
 
 interface AnalisisMercadoProps {
@@ -32,12 +41,45 @@ interface AnalisisMercadoProps {
   ano: number;
   precio: number;
   kilometraje: number;
+  onKilometrajeChange: (km: number) => void;
+  autosSimilares: Array<{
+    kilometraje: number;
+    ano: number;
+    [key: string]: any;
+  }>;
   datos: DatosMercado;
 }
 
-export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraje, datos }: AnalisisMercadoProps) {
+export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraje, onKilometrajeChange, autosSimilares, datos }: AnalisisMercadoProps) {
   const currency = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 0, maximumFractionDigits: 0 });
   const { debugMode } = useDebugMode();
+  
+  // Calcular estadísticas de kilometraje del mercado
+  const estadisticasKm = (() => {
+    const kilometrajes = autosSimilares.map(auto => auto.kilometraje).filter(km => km > 0);
+    if (kilometrajes.length === 0) {
+      return { minimo: 0, maximo: 150000, promedio: 75000 };
+    }
+    return {
+      minimo: Math.min(...kilometrajes),
+      maximo: Math.max(...kilometrajes),
+      promedio: kilometrajes.reduce((a, b) => a + b, 0) / kilometrajes.length
+    };
+  })();
+  
+  // Calcular kilometraje esperado para el slider
+  const edadVehiculo = new Date().getFullYear() - ano;
+  const kilometrajeEsperado = edadVehiculo * 15000;
+  
+  // Calcular factor de kilometraje y precio ajustado
+  const factorKilometraje = calcularFactorKilometraje(
+    kilometraje, 
+    autosSimilares, 
+    { marca, modelo, ano, version: '', kilometraje, estado: '', ciudad: '' }
+  );
+  
+  const precioAjustado = datos.precioPromedio * factorKilometraje;
+  const porcentajeAjuste = ((factorKilometraje - 1) * 100);
   
   // Calcular posición en la distribución de precios (0-100%)
   const posicionPrecio = ((precio - datos.rangoMinimo) / (datos.rangoMaximo - datos.rangoMinimo)) * 100;
@@ -74,11 +116,8 @@ export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraj
                         metodoDistribucion === 'desviacion' ? 'Desviación estándar' :
                         metodoDistribucion === 'fijo' ? 'Distribución fija' : 'Distribución lineal';
 
-  // Simulación de kilometraje promedio para mostrar barra de distribución
-  const kmPromedio = 12667;
-  const kmMinimo = 3000;
-  const kmMaximo = 22801;
-  const posicionKm = ((kilometraje - kmMinimo) / (kmMaximo - kmMinimo)) * 100;
+  // Calcular posición del kilometraje en el rango del mercado
+  const posicionKm = ((kilometraje - estadisticasKm.minimo) / (estadisticasKm.maximo - estadisticasKm.minimo)) * 100;
 
   const getDemandaIcon = () => {
     switch (datos.demanda) {
@@ -541,7 +580,80 @@ export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraj
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
             <div className="flex items-center gap-2 text-sm text-yellow-800">
               <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-              <span>Zona Óptima: El 50% se vende en rango promedio • Alta dispersión detectada</span>
+              <span>
+                {(() => {
+                  const rangoPromedioData = distribucionPrecios.find(d => d.rango === "Promedio");
+                  const porcentajePromedio = rangoPromedioData ? Math.round(rangoPromedioData.porcentaje) : 0;
+                  const coefVar = datos.coeficienteVariacion || 0;
+                  const dispersion = coefVar > 0.30 ? 'Alta' : coefVar > 0.15 ? 'Moderada' : 'Baja';
+                  const textoModa = datos.modaPrecios ? ` • Precio más común: ${currency.format(datos.modaPrecios)}` : '';
+                  
+                  // Si tenemos cuartiles, mostrar información más específica
+                  if (datos.cuartilesPrecios) {
+                    const { Q1, Q3 } = datos.cuartilesPrecios;
+                    return `El 50% de los autos se anuncian entre ${currency.format(Q1)} y ${currency.format(Q3)}${textoModa} • Dispersión: ${dispersion}`;
+                  }
+                  
+                  return `Zona Óptima: El ${porcentajePromedio}% se vende en rango promedio${textoModa} • ${dispersion} dispersión detectada`;
+                })()}
+              </span>
+              {debugMode && datos.cuartilesPrecios && (
+                <DebugInfo
+                  title="Análisis de Cuartiles y Moda"
+                  data={{
+                    fuente: "Cálculo de cuartiles (Q0, Q1, Q2, Q3, Q4) y moda sobre precios ordenados",
+                    consulta: "Análisis completo de distribución de precios por cuartiles y moda",
+                    parametros: {
+                      vehiculosAnalizados: datos.vehiculosSimilares,
+                      metodologia: "Cuartiles estadísticos + Análisis de frecuencia"
+                    },
+                    calculos: [{
+                      formula: "Q0 = Mínimo, Q1 = percentil 25%, Q2 = percentil 50% (mediana), Q3 = percentil 75%, Q4 = Máximo\nIQR = Q3 - Q1 (Rango intercuartílico)\n50% central de los datos = [Q1, Q3]\nModa = precio con mayor frecuencia",
+                      valores: {
+                        Q0_Minimo: currency.format(datos.cuartilesPrecios.Q0),
+                        Q1_Percentil25: currency.format(datos.cuartilesPrecios.Q1),
+                        Q2_Mediana: currency.format(datos.cuartilesPrecios.Q2),
+                        Q3_Percentil75: currency.format(datos.cuartilesPrecios.Q3),
+                        Q4_Maximo: currency.format(datos.cuartilesPrecios.Q4),
+                        IQR: currency.format(datos.cuartilesPrecios.Q3 - datos.cuartilesPrecios.Q1),
+                        Moda: datos.modaPrecios ? currency.format(datos.modaPrecios) : "Sin moda (todos únicos)",
+                        coeficienteVariacion: datos.coeficienteVariacion 
+                          ? `${(datos.coeficienteVariacion * 100).toFixed(1)}%`
+                          : "N/A"
+                      },
+                      resultado: `El 50% de los vehículos se anuncian entre ${currency.format(datos.cuartilesPrecios.Q1)} (Q1) y ${currency.format(datos.cuartilesPrecios.Q3)} (Q3)${datos.modaPrecios ? `. Precio más común: ${currency.format(datos.modaPrecios)}` : ''}`
+                    }],
+                    procesamiento: {
+                      pasos: [
+                        "1. Ordenar todos los precios de menor a mayor",
+                        "2. Calcular Q0 (Mínimo): primer valor del array ordenado",
+                        "3. Calcular Q1: valor que deja 25% de datos abajo",
+                        "4. Calcular Q2 (mediana): valor que divide datos en 2 mitades",
+                        "5. Calcular Q3: valor que deja 75% de datos abajo",
+                        "6. Calcular Q4 (Máximo): último valor del array ordenado",
+                        "7. Calcular moda: precio que aparece con mayor frecuencia (≥2 veces)",
+                        "8. El rango [Q1, Q3] contiene el 50% central de los datos"
+                      ],
+                      filtros: ["Precios > 0", "Muestra >= 12 vehículos para cuartiles"],
+                      transformaciones: ["Ordenamiento ascendente", "Cálculo de percentiles", "Análisis de frecuencia"]
+                    },
+                    observaciones: [
+                      "Q0 (Mínimo) y Q4 (Máximo) marcan los límites del rango de precios",
+                      "El rango intercuartílico (IQR) es una medida robusta de dispersión",
+                      "El 50% central de los precios se concentra entre Q1 y Q3",
+                      "Este rango es menos sensible a valores extremos que el promedio",
+                      datos.modaPrecios 
+                        ? `La moda (${currency.format(datos.modaPrecios)}) indica el precio más frecuente en el mercado`
+                        : "Sin moda: cada precio aparece solo una vez (alta heterogeneidad)",
+                      datos.coeficienteVariacion && datos.coeficienteVariacion > 0.30 
+                        ? "Alta dispersión: gran variabilidad de precios en el mercado"
+                        : datos.coeficienteVariacion && datos.coeficienteVariacion > 0.15
+                        ? "Dispersión moderada: variabilidad normal en el mercado"
+                        : "Baja dispersión: precios concentrados en rango estrecho"
+                    ]
+                  }}
+                />
+              )}
             </div>
           </div>
 
@@ -633,6 +745,97 @@ export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraj
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-blue-600" />
             Ajuste Inteligente de Kilometraje
+            {debugMode && (
+              <DebugInfo
+                title="Ajuste inteligente por kilometraje"
+                data={{
+                  fuente: "Cálculo local: calcularFactorKilometraje()",
+                  datosPredecesores: [
+                    {
+                      fuente: "Kilometraje seleccionado por usuario",
+                      valor: `${kilometraje.toLocaleString()} km`,
+                      fecha: new Date().toLocaleDateString()
+                    },
+                    {
+                      fuente: "Autos similares del mercado",
+                      valor: `${autosSimilares.length} vehículos analizados`,
+                      fecha: new Date().toLocaleDateString()
+                    },
+                    {
+                      fuente: "Datos del vehículo",
+                      valor: `${marca} ${modelo} ${ano}`,
+                      fecha: new Date().toLocaleDateString()
+                    }
+                  ],
+                  reglasAplicadas: [
+                    "1. Calcular kilometraje esperado: (año actual - año vehículo) × 15,000 km/año",
+                    "2. Calcular diferencia: kilometraje seleccionado - kilometraje esperado",
+                    "3. Aplicar tabla de ajuste según diferencia:",
+                    "   • < -30,000 km: +15% (muy bajo)",
+                    "   • -30,000 a -15,000 km: +10% (bajo)",
+                    "   • -15,000 a -5,000 km: +5% (ligeramente bajo)",
+                    "   • -5,000 a +5,000 km: 0% (normal)",
+                    "   • +5,000 a +15,000 km: -5% (ligeramente alto)",
+                    "   • +15,000 a +30,000 km: -10% (alto)",
+                    "   • > +30,000 km: -15% (muy alto)",
+                    "4. Aplicar límites de seguridad: factor entre 0.75 y 1.15"
+                  ],
+                  calculos: [{
+                    formula: "kilometrajeEsperado = (añoActual - añoVehiculo) × 15000\ndiferencia = kilometrajeSeleccionado - kilometrajeEsperado\nfactor = 1 + (ajustePorTabla)\nprecioAjustado = precioPromedio × factor",
+                    formulaConValores: `kilometrajeEsperado = (${new Date().getFullYear()} - ${ano}) × 15000 = ${(new Date().getFullYear() - ano) * 15000} km\ndiferencia = ${kilometraje} - ${(new Date().getFullYear() - ano) * 15000} = ${kilometraje - (new Date().getFullYear() - ano) * 15000} km\nfactor = ${factorKilometraje.toFixed(3)}\nprecioAjustado = ${currency.format(datos.precioPromedio)} × ${factorKilometraje.toFixed(3)} = ${currency.format(precioAjustado)}`,
+                    valores: {
+                      kilometrajeSeleccionado: `${kilometraje.toLocaleString()} km`,
+                      kilometrajeEsperado: `${((new Date().getFullYear() - ano) * 15000).toLocaleString()} km`,
+                      diferencia: `${(kilometraje - (new Date().getFullYear() - ano) * 15000).toLocaleString()} km`,
+                      factorKilometraje: factorKilometraje.toFixed(3),
+                      porcentajeAjuste: `${porcentajeAjuste >= 0 ? '+' : ''}${porcentajeAjuste.toFixed(1)}%`,
+                      precioBase: currency.format(datos.precioPromedio),
+                      precioAjustado: currency.format(precioAjustado),
+                      diferenciaMonetaria: currency.format(precioAjustado - datos.precioPromedio),
+                      estadisticasMercado: {
+                        kmMinimo: `${estadisticasKm.minimo.toLocaleString()} km`,
+                        kmPromedio: `${Math.round(estadisticasKm.promedio).toLocaleString()} km`,
+                        kmMaximo: `${estadisticasKm.maximo.toLocaleString()} km`
+                      }
+                    },
+                    resultado: `Factor: ${factorKilometraje.toFixed(3)}x (${porcentajeAjuste >= 0 ? '+' : ''}${porcentajeAjuste.toFixed(1)}%) → Precio ajustado: ${currency.format(precioAjustado)}`,
+                    documentacion: "/src/utils/priceAnalysisCalculations.ts#calcularFactorKilometraje"
+                  }],
+                  procesamiento: {
+                    pasos: [
+                      "1. Validar datos de entrada (kilometraje > 0, autosSimilares válidos)",
+                      "2. Calcular kilometraje esperado basado en edad del vehículo",
+                      "3. Calcular diferencia entre km real y esperado",
+                      "4. Buscar en tabla de ajuste el factor correspondiente",
+                      "5. Aplicar límites de seguridad (0.75 - 1.15)",
+                      "6. Calcular precio ajustado multiplicando precio base × factor"
+                    ],
+                    filtros: [
+                      "Kilometraje > 0",
+                      "autosSimilares con datos válidos",
+                      "Factor limitado entre 0.75 y 1.15"
+                    ],
+                    transformaciones: [
+                      "Cálculo de kilometraje esperado por edad",
+                      "Normalización de diferencia a factor de ajuste",
+                      "Aplicación de tabla de ajuste progresiva",
+                      "Cálculo de precio final ajustado"
+                    ]
+                  },
+                  observaciones: [
+                    "Estándar mexicano: 15,000 km/año de kilometraje esperado",
+                    `Estadísticas del mercado: ${Math.round(estadisticasKm.minimo).toLocaleString()} - ${Math.round(estadisticasKm.maximo).toLocaleString()} km (promedio: ${Math.round(estadisticasKm.promedio).toLocaleString()} km)`,
+                    porcentajeAjuste > 5 
+                      ? "✓ Kilometraje bajo: Vehículo con poco uso merece precio premium"
+                      : porcentajeAjuste < -5
+                      ? "⚠ Kilometraje alto: Vehículo con mucho uso justifica descuento"
+                      : "✓ Kilometraje normal: Uso típico para la antigüedad del vehículo",
+                    "El sistema evita ajustes extremos con límites de seguridad",
+                    "Basado en análisis de mercado real y datos históricos"
+                  ]
+                }}
+              />
+            )}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             Ajusta el kilometraje para ver el impacto en el precio
@@ -646,38 +849,57 @@ export default function AnalisisMercado({ marca, modelo, ano, precio, kilometraj
                 <p className="text-lg font-bold">{currency.format(datos.precioPromedio)}</p>
               </div>
               <div className="text-center">
-                <p className="text-sm text-muted-foreground">0.0%</p>
+                <p className={`text-sm font-semibold ${porcentajeAjuste >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {porcentajeAjuste >= 0 ? '+' : ''}{porcentajeAjuste.toFixed(1)}%
+                </p>
                 <p className="text-sm">ajuste</p>
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium">Precio ajustado</p>
-                <p className="text-lg font-bold text-blue-600">{currency.format(datos.precioPromedio)}</p>
+                <p className="text-lg font-bold text-blue-600">{currency.format(precioAjustado)}</p>
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Kilometraje: {kilometraje.toLocaleString()} km</span>
-                <span className="text-muted-foreground">{((kilometraje / kmPromedio) * 100).toFixed(1)}% precio</span>
+                <span className="text-muted-foreground">Factor: {factorKilometraje.toFixed(2)}x</span>
               </div>
               <Slider 
-                defaultValue={[kilometraje]} 
-                max={kmMaximo} 
-                min={kmMinimo} 
-                step={100}
+                value={[kilometraje]} 
+                onValueChange={(value) => onKilometrajeChange(value[0])}
+                max={kilometrajeEsperado * 2} 
+                min={0} 
+                step={1000}
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{kmMinimo.toLocaleString()} km</span>
-                <span>{kmPromedio.toLocaleString()} km<br />Kilometraje promedio</span>
-                <span>{kmMaximo.toLocaleString()} km</span>
+                <span>0 km</span>
+                <span className="font-medium text-blue-600">{kilometrajeEsperado.toLocaleString()} km<br />Esperado (factor 0%)</span>
+                <span>{(kilometrajeEsperado * 2).toLocaleString()} km</span>
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 text-sm text-blue-800">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span>Análisis IA: Kilometraje dentro del rango normal del mercado</span>
+            <div className={`border rounded-lg p-3 ${
+              porcentajeAjuste > 5 ? 'bg-green-50 border-green-200' :
+              porcentajeAjuste < -5 ? 'bg-red-50 border-red-200' :
+              'bg-blue-50 border-blue-200'
+            }`}>
+              <div className={`flex items-center gap-2 text-sm ${
+                porcentajeAjuste > 5 ? 'text-green-800' :
+                porcentajeAjuste < -5 ? 'text-red-800' :
+                'text-blue-800'
+              }`}>
+                <div className={`w-2 h-2 rounded-full ${
+                  porcentajeAjuste > 5 ? 'bg-green-500' :
+                  porcentajeAjuste < -5 ? 'bg-red-500' :
+                  'bg-blue-500'
+                }`}></div>
+                <span>
+                  {porcentajeAjuste > 5 ? 'Kilometraje bajo: Precio premium por menor uso' :
+                   porcentajeAjuste < -5 ? 'Kilometraje alto: Precio reducido por mayor uso' :
+                   'Kilometraje normal para la antigüedad del vehículo'}
+                </span>
               </div>
             </div>
           </div>

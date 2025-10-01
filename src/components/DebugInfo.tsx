@@ -15,6 +15,7 @@ interface DebugInfoProps {
   title: string;
   data: {
     fuente: string;
+    fuenteTipo?: 'online' | 'fallback' | 'cache';
     consulta?: string;
     parametros?: Record<string, any>;
     datosPredecesores?: {
@@ -65,9 +66,26 @@ export function DebugInfo({ title, data }: DebugInfoProps) {
             <h4 className="font-semibold mb-2 flex items-center gap-2">
               📊 Fuente de datos
             </h4>
-            <Badge variant="outline" className="font-mono">
-              {data.fuente}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="font-mono">
+                {data.fuente}
+              </Badge>
+              {data.fuenteTipo && (
+                <Badge 
+                  variant={data.fuenteTipo === 'online' ? 'default' : data.fuenteTipo === 'fallback' ? 'secondary' : 'outline'}
+                  className="font-mono"
+                >
+                  {data.fuenteTipo === 'online' && '🟢 Online (API en tiempo real)'}
+                  {data.fuenteTipo === 'fallback' && '🟡 Fallback (Caché de respaldo)'}
+                  {data.fuenteTipo === 'cache' && '🔵 Cache (Datos recientes)'}
+                </Badge>
+              )}
+            </div>
+            {data.fuenteTipo === 'fallback' && (
+              <p className="text-xs text-muted-foreground mt-2">
+                ℹ️ Estos datos provienen del último cálculo exitoso almacenado en caché debido a que la API externa no está disponible en este momento.
+              </p>
+            )}
           </div>
 
           {/* Consulta/API */}

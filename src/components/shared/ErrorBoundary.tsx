@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "@/utils/iconImports";
 import { logger } from '@/utils/logger';
+import { errorLogger } from '@/utils/errorLogger';
 
 interface Props {
   children: ReactNode;
@@ -26,7 +27,18 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error('ErrorBoundary caught an error:', error, errorInfo);
     
-    // En producción, enviar el error a un servicio de monitoreo
+    // Registrar en el sistema de logging persistente
+    errorLogger.logFrontendError({
+      message: error.message,
+      stackTrace: error.stack,
+      context: {
+        componentStack: errorInfo.componentStack,
+        errorName: error.name,
+        timestamp: new Date().toISOString(),
+      },
+    });
+    
+    // En producción, también enviar a servicio de monitoreo
     if (!import.meta.env.DEV) {
       logger.error('Production error:', {
         message: error.message,

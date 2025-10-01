@@ -1,6 +1,6 @@
 # Cambio: Fuente de Datos para Precio Promedio de Mercado
 
-**Fecha**: 2025-09-30 13:28:00
+**Fecha**: 2025-09-30 13:28:00 America/Mexico_City
 **Tipo**: Cambio de Funcionalidad
 **Componentes Afectados**: `AnalisisPrecio.tsx`, `AnalisisMercado.tsx`
 
