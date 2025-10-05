@@ -80,16 +80,18 @@ export const RecommendationPanel = memo(function RecommendationPanel({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="font-semibold text-sm">Factores considerados:</h4>
-              <div className="grid grid-cols-2 gap-2">
-                {tiempoIA.factores?.map((factor: string, index: number) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {factor}
-                  </Badge>
-                ))}
+            {Array.isArray(tiempoIA.factores) && tiempoIA.factores.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Factores considerados:</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {tiempoIA.factores.map((factor: string, index: number) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {factor}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {tiempoIA.recomendaciones && tiempoIA.recomendaciones.length > 0 && (
               <div className="space-y-2">

@@ -16,15 +16,16 @@ serve(async (req) => {
   let versionId = '';
 
   try {
-    const { versionId: reqVersionId } = await req.json();
+    const { versionId: reqVersionId, location } = await req.json();
     versionId = reqVersionId;
+    const locationId = location || '';
     
     if (!versionId) {
       console.error('[maxi_similar_cars] Missing versionId parameter');
       throw new Error('versionId is required');
     }
 
-    console.log(`[maxi_similar_cars] Processing request for versionId: ${versionId}`);
+    console.log(`[maxi_similar_cars] Processing request for versionId: ${versionId}, location: ${locationId || '(vacío - búsqueda nacional)'}`);
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -72,9 +73,10 @@ serve(async (req) => {
     }
 
     // Build API URL
-    const apiUrl = `https://api.maxipublica.com/v3/ads_sites/210000?categoryId=${versionId}&locationId=&transmission=TRANS-AUTOMATICA&kilometers=&origin=web`;
+    const apiUrl = `https://api.maxipublica.com/v3/ads_sites/210000?categoryId=${versionId}&locationId=${locationId}&transmission=TRANS-AUTOMATICA&kilometers=&origin=web`;
 
     console.log('[maxi_similar_cars] Making API call to MaxiPublica...');
+    console.log(`[maxi_similar_cars] URL: ${apiUrl}`);
     console.log(`[maxi_similar_cars] Token: ${tokenData.token.substring(0, 10)}...`);
 
     // Make API call with timeout

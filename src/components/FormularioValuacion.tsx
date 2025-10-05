@@ -24,6 +24,7 @@ interface DatosVehiculo {
   versionId?: string;
   kilometraje: number;
   estado: string;
+  estadoId?: string;
   ciudad: string;
 }
 
@@ -36,6 +37,42 @@ interface CatalogItem {
   name: string;
   action: string;
 }
+
+// Estados mexicanos
+const ESTADOS_MEXICO = [
+  { locationId: "STS01", name: "Aguascalientes" },
+  { locationId: "STS02", name: "Baja California" },
+  { locationId: "STS03", name: "Baja California Sur" },
+  { locationId: "STS04", name: "Campeche" },
+  { locationId: "STS07", name: "Chiapas" },
+  { locationId: "STS08", name: "Chihuahua" },
+  { locationId: "STS09", name: "Ciudad de México" },
+  { locationId: "STS05", name: "Coahuila" },
+  { locationId: "STS06", name: "Colima" },
+  { locationId: "STS10", name: "Durango" },
+  { locationId: "STS11", name: "Guanajuato" },
+  { locationId: "STS12", name: "Guerrero" },
+  { locationId: "STS13", name: "Hidalgo" },
+  { locationId: "STS14", name: "Jalisco" },
+  { locationId: "STS16", name: "Michoacán" },
+  { locationId: "STS17", name: "Morelos" },
+  { locationId: "STS15", name: "México" },
+  { locationId: "STS18", name: "Nayarit" },
+  { locationId: "STS19", name: "Nuevo León" },
+  { locationId: "STS20", name: "Oaxaca" },
+  { locationId: "STS21", name: "Puebla" },
+  { locationId: "STS22", name: "Querétaro" },
+  { locationId: "STS23", name: "Quintana Roo" },
+  { locationId: "STS24", name: "San Luis Potosí" },
+  { locationId: "STS25", name: "Sinaloa" },
+  { locationId: "STS26", name: "Sonora" },
+  { locationId: "STS27", name: "Tabasco" },
+  { locationId: "STS28", name: "Tamaulipas" },
+  { locationId: "STS29", name: "Tlaxcala" },
+  { locationId: "STS30", name: "Veracruz" },
+  { locationId: "STS31", name: "Yucatán" },
+  { locationId: "STS32", name: "Zacatecas" }
+];
 
 export function FormularioValuacion({ onEnviar }: FormularioValuacionProps) {
   const [marcas, setMarcas] = useState<CatalogItem[]>([]);
@@ -61,7 +98,9 @@ export function FormularioValuacion({ onEnviar }: FormularioValuacionProps) {
     ano: "",
     anoId: "",
     version: "",
-    versionId: ""
+    versionId: "",
+    estado: "",
+    estadoId: ""
   });
 
   // Cargar marcas al montar el componente
@@ -255,6 +294,15 @@ export function FormularioValuacion({ onEnviar }: FormularioValuacionProps) {
     }));
   };
 
+  const manejarCambioEstado = (estadoId: string) => {
+    const estado = ESTADOS_MEXICO.find(e => e.locationId === estadoId);
+    setFormData(prev => ({
+      ...prev,
+      estado: estado?.name || "",
+      estadoId: estadoId
+    }));
+  };
+
   const validarFormulario = () => {
     const errores = [];
     
@@ -312,7 +360,8 @@ export function FormularioValuacion({ onEnviar }: FormularioValuacionProps) {
         version: formData.version || "Estándar",
         versionId: formData.versionId || undefined,
         kilometraje: 0, // Valor por defecto
-        estado: "Nacional", // Valor por defecto
+        estado: formData.estado || "Nacional",
+        estadoId: formData.estadoId || undefined,
         ciudad: "Nacional" // Valor por defecto
       };
 
@@ -507,6 +556,25 @@ export function FormularioValuacion({ onEnviar }: FormularioValuacionProps) {
                       {versiones.map((version) => (
                         <SelectItem key={version.id} value={version.id}>
                           {version.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Estado */}
+                <div className="space-y-2">
+                  <Label htmlFor="estado" className="text-sm font-medium">
+                    Estado
+                  </Label>
+                  <Select value={formData.estadoId} onValueChange={manejarCambioEstado}>
+                    <SelectTrigger className="bg-background border-2 border-input focus:border-primary">
+                      <SelectValue placeholder="Selecciona el estado (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border-2 z-50">
+                      {ESTADOS_MEXICO.map((estado) => (
+                        <SelectItem key={estado.locationId} value={estado.locationId}>
+                          {estado.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

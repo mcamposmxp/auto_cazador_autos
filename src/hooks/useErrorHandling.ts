@@ -85,7 +85,7 @@ export function useErrorHandling() {
       message: params.message,
       errorCode: params.errorCode || `API_ERROR_${params.statusCode || 'UNKNOWN'}`,
       category: 'api',
-      severity: params.statusCode && params.statusCode >= 500 ? 'high' : 'medium',
+      severity: 'high', // Todos los errores de API se registran en DB
       endpoint: params.endpoint,
       statusCode: params.statusCode,
       requestData: params.requestData,

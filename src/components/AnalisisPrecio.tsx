@@ -127,7 +127,10 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
     try {
       // Obtener datos de vehículos similares desde maxi_similar_cars
       const { data, error } = await supabase.functions.invoke('maxi_similar_cars', {
-        body: { versionId: datos.versionId }
+        body: { 
+          versionId: datos.versionId,
+          location: (estadoSeleccionado === 'ALL' || !estadoSeleccionado) ? '' : estadoSeleccionado
+        }
       });
 
       if (error) {
@@ -224,7 +227,10 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
       
       try {
         const { data: maxiData, error: maxiError } = await supabase.functions.invoke('maxi_similar_cars', {
-          body: { versionId }
+          body: { 
+            versionId,
+            location: (estadoSeleccionado === 'ALL' || !estadoSeleccionado) ? '' : estadoSeleccionado
+          }
         });
         
         console.log('Respuesta de maxi_similar_cars:', { maxiData, maxiError });
@@ -453,7 +459,9 @@ export function AnalisisPrecio({ datos, onVolver }: AnalisisPrecioProps) {
                         kilometraje: datos.kilometraje,
                         estado: datos.estado,
                         ciudad: datos.ciudad,
-                        versionId: datos.versionId
+                        versionId: datos.versionId,
+                        estadoSeleccionado: estadoSeleccionado === 'ALL' ? 'Todo el país' : estadoSeleccionado,
+                        tipoVendedor: tipoVendedorSeleccionado
                       },
                       calculos: [{
                         formula: "datosVehiculo = validarCatalogo(marca, modelo, año) && obtenerVersionId(version) && consultarAPI(versionId)",

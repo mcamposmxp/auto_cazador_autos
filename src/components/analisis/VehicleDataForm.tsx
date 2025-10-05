@@ -6,6 +6,42 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Car } from "@/utils/iconImports";
 
+// Estados mexicanos
+const ESTADOS_MEXICO = [
+  { locationId: "STS01", name: "Aguascalientes" },
+  { locationId: "STS02", name: "Baja California" },
+  { locationId: "STS03", name: "Baja California Sur" },
+  { locationId: "STS04", name: "Campeche" },
+  { locationId: "STS07", name: "Chiapas" },
+  { locationId: "STS08", name: "Chihuahua" },
+  { locationId: "STS09", name: "Ciudad de México" },
+  { locationId: "STS05", name: "Coahuila" },
+  { locationId: "STS06", name: "Colima" },
+  { locationId: "STS10", name: "Durango" },
+  { locationId: "STS11", name: "Guanajuato" },
+  { locationId: "STS12", name: "Guerrero" },
+  { locationId: "STS13", name: "Hidalgo" },
+  { locationId: "STS14", name: "Jalisco" },
+  { locationId: "STS16", name: "Michoacán" },
+  { locationId: "STS17", name: "Morelos" },
+  { locationId: "STS15", name: "México" },
+  { locationId: "STS18", name: "Nayarit" },
+  { locationId: "STS19", name: "Nuevo León" },
+  { locationId: "STS20", name: "Oaxaca" },
+  { locationId: "STS21", name: "Puebla" },
+  { locationId: "STS22", name: "Querétaro" },
+  { locationId: "STS23", name: "Quintana Roo" },
+  { locationId: "STS24", name: "San Luis Potosí" },
+  { locationId: "STS25", name: "Sinaloa" },
+  { locationId: "STS26", name: "Sonora" },
+  { locationId: "STS27", name: "Tabasco" },
+  { locationId: "STS28", name: "Tamaulipas" },
+  { locationId: "STS29", name: "Tlaxcala" },
+  { locationId: "STS30", name: "Veracruz" },
+  { locationId: "STS31", name: "Yucatán" },
+  { locationId: "STS32", name: "Zacatecas" }
+];
+
 interface VehicleDataFormProps {
   precioSeleccionado: number;
   kilometrajeSeleccionado: number;
@@ -111,12 +147,13 @@ export const VehicleDataForm = memo(function VehicleDataForm({
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los estados</SelectItem>
-                <SelectItem value="cdmx">Ciudad de México</SelectItem>
-                <SelectItem value="guadalajara">Guadalajara</SelectItem>
-                <SelectItem value="monterrey">Monterrey</SelectItem>
-                <SelectItem value="otros">Otros estados</SelectItem>
+              <SelectContent className="bg-background border-2 z-50">
+                <SelectItem value="ALL">Todo el país</SelectItem>
+                {ESTADOS_MEXICO.map((estado) => (
+                  <SelectItem key={estado.locationId} value={estado.locationId}>
+                    {estado.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
