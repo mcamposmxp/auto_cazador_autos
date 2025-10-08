@@ -16,7 +16,7 @@ serve(async (req) => {
   let versionId = '';
 
   try {
-    const { versionId: reqVersionId, location } = await req.json();
+    const { versionId: reqVersionId, location, transmission, kilometers, origin } = await req.json();
     versionId = reqVersionId;
     const locationId = location || '';
     
@@ -26,11 +26,55 @@ serve(async (req) => {
     }
 
     console.log(`[maxi_similar_cars] Processing request for versionId: ${versionId}, location: ${locationId || '(vacío - búsqueda nacional)'}`);
+    console.log(`[maxi_similar_cars] Raw params -> transmission: ${transmission ?? '(not provided)'}; kilometers: ${kilometers ?? '(not provided)'}; origin: ${origin ?? '(not provided)'}`);
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Validate parameters: transmission, kilometers, origin
+    const acceptedTransmissions = ['TRANS-AUTOMATICA', 'TRANS-CVTIVT', 'TRANS-MANUAL', 'TRANS-OTRO', 'TRANS-TRONIC'];
+    let transmissionValidated: string;
+
+    if (transmission && acceptedTransmissions.includes(transmission)) {
+      transmissionValidated = transmission;
+    } else {
+      try {
+        const { data: manualRow, error: manualErr } = await supabase
+          .from('transmission_manual')
+          .select('version_id')
+          .eq('version_id', versionId)
+          .maybeSingle();
+
+        if (manualErr) {
+          console.warn('[maxi_similar_cars] transmission_manual lookup warning:', manualErr.message || manualErr);
+        }
+        transmissionValidated = manualRow ? 'TRANS-MANUAL' : 'TRANS-AUTOMATICA';
+      } catch (e) {
+        console.warn('[maxi_similar_cars] transmission_manual lookup failed, defaulting to TRANS-AUTOMATICA:', e);
+        transmissionValidated = 'TRANS-AUTOMATICA';
+      }
+    }
+
+    let kilometersValidated = '';
+    if (kilometers === undefined || kilometers === null || kilometers === '') {
+      kilometersValidated = '';
+    } else {
+      const kmNumber = Number(kilometers);
+      if (!Number.isFinite(kmNumber) || kmNumber <= 0) {
+        return new Response(
+          JSON.stringify({ error: "'kilometers' debe ser un número mayor a cero" }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+      kilometersValidated = String(kmNumber);
+    }
+
+    const acceptedOrigins = ['web', 'api'];
+    const originValidated = (origin && acceptedOrigins.includes(origin)) ? origin : 'web';
+
+    console.log(`[maxi_similar_cars] Params validated -> transmission: ${transmissionValidated}; kilometers: ${kilometersValidated || '(empty)'}; origin: ${originValidated}`);
 
     // Check cache first
     console.log('[maxi_similar_cars] Checking cache...');
@@ -73,7 +117,7 @@ serve(async (req) => {
     }
 
     // Build API URL
-    const apiUrl = `https://api.maxipublica.com/v3/ads_sites/210000?categoryId=${versionId}&locationId=${locationId}&transmission=TRANS-AUTOMATICA&kilometers=&origin=web`;
+    const apiUrl = `https://api.maxipublica.com/v3/ads_sites/?categoryId=${versionId}&locationId=${locationId}&transmission=${encodeURIComponent(transmissionValidated)}&kilometers=${encodeURIComponent(kilometersValidated)}&origin=${encodeURIComponent(originValidated)}`;
 
     console.log('[maxi_similar_cars] Making API call to MaxiPublica...');
     console.log(`[maxi_similar_cars] URL: ${apiUrl}`);
